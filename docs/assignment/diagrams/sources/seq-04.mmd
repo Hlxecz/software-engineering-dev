@@ -1,0 +1,17 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant J as Java 저장 모듈
+participant F as 전용 자료 폴더
+
+ U->>W: 새 글 입력 시작
+ W->>N: POST /api/jobs
+ N->>N: 글 ID 생성
+ N->>J: job.create(id, title)
+ J->>F: inbox/id/images, notes, app, order 생성
+ J-->>N: 생성 결과
+ N->>J: job.read
+ J-->>N: 글 자료
+ N-->>W: 201과 새 글

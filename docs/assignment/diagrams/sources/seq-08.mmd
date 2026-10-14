@@ -1,0 +1,18 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant J as Java 저장 모듈
+
+ U->>W: 사진·메모 입력 후 직접 작성하기
+ W->>W: 제목·태그·본문 블록 구성
+ W->>N: PUT /api/jobs/id/draft
+ opt 연결된 입력 사본이 없음
+ N->>J: job.ready, job.prepare
+ J-->>N: 입력 사본 경로
+ end
+ N->>N: persistDraft 검증
+ N->>J: draft.save
+ J-->>N: 저장 결과
+ N-->>W: 저장된 초안과 미리보기

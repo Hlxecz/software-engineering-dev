@@ -1,0 +1,17 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant J as Java 저장 모듈
+participant F as 전용 자료 폴더
+
+ U->>W: 대상 블로그 선택 또는 웹 주소 입력
+ W->>N: PUT /api/blog-settings
+ N->>N: 진행 작업·주소·확인된 소유 목록 검사
+ N->>F: tistory.config.json 주소 저장
+ N->>N: 분류·지침·발행 연결 재생성
+ N->>J: categories.state, prompts.state
+ J->>F: 새 대상에 맞는 캐시와 지침 읽기
+ J-->>N: 새 블로그 상태
+ N-->>W: 주소·분류·지침 즉시 갱신

@@ -1,0 +1,22 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant R as 공통 렌더러
+participant N as Node API
+participant J as Java 저장 모듈
+
+ U->>W: 블록 이동·삽입, 표지·카드 수정
+ W->>W: draft 변경과 dirty 표시
+ W->>R: articleBlocks, renderArticleContent
+ R-->>W: 목차·카드·표지·본문 HTML
+ U->>W: HTML 복사 또는 초안 보관
+ alt 보관
+ W->>N: PUT /api/jobs/id/draft
+ N->>R: buildPreview 검증
+ N->>J: draft.save
+ J-->>N: 저장 결과
+ N-->>W: 보관한 초안
+ else HTML 복사
+ W->>W: 클립보드에 렌더링 결과 복사
+ end

@@ -1,0 +1,24 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant J as Java 저장 모듈
+participant F as 전용 자료 폴더
+
+ W->>N: GET /api/style
+ N->>J: style.state
+ J-->>N: profile, revision
+ N-->>W: 기본 지침과 revision
+ U->>W: 기본 지침 수정·보관
+ W->>N: PUT /api/style(profile, revision, urls)
+ N->>J: style.save
+ J->>J: revision·길이·분석 ID 검사
+ alt 일치
+ J->>F: 이전 지침 이력, profile과 settings 저장
+ J-->>N: 새 revision
+ N-->>W: 보관 완료
+ else 충돌
+ J-->>N: 409
+ N-->>W: 최신 저장본 다시 열기 안내
+ end

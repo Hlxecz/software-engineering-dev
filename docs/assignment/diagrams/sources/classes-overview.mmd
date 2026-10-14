@@ -1,0 +1,94 @@
+classDiagram
+direction TB
+class Main {
+ +main(args)
+ -dispatch(workspace, request)
+ }
+class Workspace {
+ +Path root
+ +config()
+ +safe(value)
+ +configured(key)
+ +savedDirectory(id, meta)
+ +regular(file)
+ }
+class JsonFiles {
+ +obj(pairs)$
+ +read(file)$
+ +write(file, value)$
+ +writeText(file, value)$
+ +compact(value)$
+ +sha(bytes)$
+ }
+class AppException {
+ +int status
+ +require(condition, message)$
+ }
+class JobRepository {
+ -Workspace workspace
+ +create(id, initial)
+ +save(id, value)
+ +read(id)
+ +saveMeta(id, patch)
+ +upload(id, value)
+ +readImage(id, value)
+ }
+class SnapshotService {
+ -Workspace workspace
+ -JobRepository jobs
+ -input(id)
+ +ready(id)
+ +prepare(id)
+ +list()
+ }
+class DraftRepository {
+ -Workspace workspace
+ -JobRepository jobs
+ +save(id, value)
+ }
+class StorageService {
+ -Workspace workspace
+ +inspect(bases, id, delete)
+ }
+class CategoryService {
+ -Workspace workspace
+ +normalize(value, blogUrl)$
+ +state(blog)
+ +save(blog, items)
+ }
+class PromptService {
+ -Workspace workspace
+ +state(blog)
+ +save(blog, value)
+ +resolve(blog, category)
+ }
+class StyleService {
+ -Workspace workspace
+ +state(profilePath)
+ +save(profilePath, value, analysis)
+ +analysis()
+ +saveAnalysis(value)
+ }
+
+ Main ..> Workspace : 생성
+ Main ..> JobRepository : 생성
+ Main ..> SnapshotService : 생성
+ Main ..> DraftRepository : 생성
+ Main ..> StorageService : 생성
+ Main ..> CategoryService : 생성
+ Main ..> PromptService : 생성
+ Main ..> StyleService : 생성
+ JobRepository --> Workspace
+ SnapshotService --> Workspace
+ SnapshotService --> JobRepository
+ DraftRepository --> Workspace
+ DraftRepository --> JobRepository
+ StorageService --> Workspace
+ CategoryService --> Workspace
+ PromptService --> Workspace
+ StyleService --> Workspace
+ Workspace ..> JsonFiles
+ Workspace ..> AppException
+ JobRepository ..> CategoryService
+ DraftRepository ..> CategoryService
+ PromptService ..> CategoryService

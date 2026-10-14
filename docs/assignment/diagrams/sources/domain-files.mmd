@@ -1,0 +1,32 @@
+erDiagram
+ JOB ||--o{ SOURCE_IMAGE : "원본 사진"
+ JOB ||--o{ INPUT_VERSION : "입력 해시별 사본"
+ JOB ||--o| PUBLICATION_STATUS : "최근 발행 상태"
+ INPUT_VERSION ||--|{ SNAPSHOT_IMAGE : "준비 당시 사진"
+ INPUT_VERSION ||--o| DRAFT : "현재 초안"
+ INPUT_VERSION ||--o{ DRAFT_HISTORY : "이전 편집 JSON"
+ INPUT_VERSION ||--o| WRITING_CONTEXT : "생성 당시 지침"
+ INPUT_VERSION ||--o{ PUBLICATION_ATTEMPT : "발행 시도별 사본"
+ PUBLICATION_ATTEMPT ||--o| RECEIPT : "공개 검증 성공 기록"
+ JOB {
+  string id "로컬 폴더 이름"
+  string title "app.json"
+  string directory "선택된 입력 사본 경로"
+ }
+ INPUT_VERSION {
+  string inputDigest "입력 SHA256"
+  object manifest "사진·입력 정보"
+ }
+ DRAFT {
+  string title
+  array tags
+  array blocks
+  object category "선택 값"
+  string cover "선택 파일명"
+  object githubCard "선택 카드"
+ }
+ PUBLICATION_STATUS {
+  string phase
+  string submittedAt "제출 직전 기록"
+  string attemptId
+ }

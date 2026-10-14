@@ -1,0 +1,173 @@
+<!doctype html>
+<!-- 화면의 뼈대: id는 app.js에서 요소를 찾는 이름이고 class는 CSS 모양을 적용하는 이름이다. 이 파일의 버튼 자체는 저장하지 않으며 app.js의 이벤트가 로컬 API를 호출한다. -->
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="개발 캡처를 모으고, 내 말투로 초안을 작성하고, 글과 사진을 함께 검토하는 H.Dev Studio.">
+  <title>H.Dev Studio · 개발 기록 작업실</title>
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="64x64">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/article.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <button id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="true" aria-label="사이드바 접기" title="사이드바 접기"><span data-icon="layout"></span></button>
+  <button id="sidebar-scrim" class="sidebar-scrim" aria-label="사이드바 닫기" tabindex="-1" hidden></button>
+  <aside id="sidebar" class="sidebar">
+    <a class="brand" href="/" aria-label="H.Dev Studio 홈"><img class="brand-icon" src="/logo.png" width="42" height="42" alt=""><span>H.Dev <strong>Studio</strong></span></a>
+    <button id="new-post" class="new-post" aria-label="새로운 글" title="새로운 글"><span aria-hidden="true">＋</span><span class="nav-label">새로운 글</span></button>
+    <nav aria-label="작업실 메뉴">
+      <button id="studio-nav" class="nav-item selected" aria-label="글 작업실" title="글 작업실"><span data-icon="layout"></span><span class="nav-label">글 작업실</span></button>
+      <button id="archive-nav" class="nav-item" aria-label="보관한 글" title="보관한 글"><span data-icon="archive"></span><span class="nav-label">보관한 글</span><span id="archive-count" class="nav-count">0</span></button>
+      <button id="library-nav" class="nav-item" aria-label="티스토리 글" title="티스토리 글"><span data-icon="file"></span><span class="nav-label">티스토리 글</span></button>
+      <button id="style-nav" class="nav-item" aria-label="내 말투" title="내 말투"><span data-icon="feather"></span><span class="nav-label">내 말투</span></button>
+      <button id="blog-settings-nav" class="nav-item" aria-label="내 블로그 연결" title="내 블로그 연결"><span data-icon="layout"></span><span class="nav-label">내 블로그 연결</span></button>
+      <button id="help-nav" class="nav-item" aria-label="도움말 · AI 연결" title="도움말 · AI 연결"><span data-icon="help"></span><span class="nav-label">도움말 · AI 연결</span></button>
+    </nav>
+    <div class="recent-heading">최근 작업</div>
+    <div id="recent-jobs" class="recent-jobs"></div>
+    <div class="sidebar-bottom"><div class="profile-avatar">H</div><div><strong id="connected-blog-name">내 블로그</strong><a id="blog-link" target="_blank" rel="noopener noreferrer">내 블로그 열기 <span aria-hidden="true">↗</span></a></div></div>
+  </aside>
+
+  <!-- 작업실 본문. source-panel은 사진·메모 입력, draft-panel은 초안 편집·미리보기 영역이다. -->
+  <main>
+    <header class="topbar"><div class="breadcrumb"><span>작업실</span><span aria-hidden="true">/</span><strong id="breadcrumb-title">새로운 개발 기록</strong></div><div class="top-actions"><span id="save-state" class="save-state" role="status">시작할 준비가 됐어요</span><button id="delete-current" class="button delete-button" hidden><span data-icon="trash"></span> 삭제</button><button id="save-all" class="button secondary"><span data-icon="save"></span> 초안 보관</button></div></header>
+    <section class="workspace-heading"><div><div class="workspace-kicker"><span class="small-dot"></span> 나의 개발 기록</div><h1>오늘의 작업을, 한 편의 글로.</h1><p>캡처에 담긴 과정을 내 말투로 정리해 보세요.</p></div><div class="workflow-steps" aria-label="작성 순서"><span class="current"><b>1</b> 자료 모으기</span><i></i><span id="step-two"><b>2</b> 초안 작성</span><i></i><span id="step-three"><b>3</b> 검토</span></div></section>
+
+    <div class="workspace">
+      <section class="source-panel" aria-labelledby="source-heading">
+        <div class="panel-heading"><h2 id="source-heading"><span data-icon="images"></span> 글의 재료</h2><span id="photo-count" class="counter">사진 0장</span></div>
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="캡처 사진 업로드">
+          <div class="upload-art" aria-hidden="true"><div class="mini-photo back"></div><div class="mini-photo front"><span data-icon="image"></span><b>＋</b></div></div>
+          <strong>캡처한 사진을 여기에 놓아주세요</strong><span>또는 <em>파일 선택하기</em></span><small>PNG, JPG, WebP · 한 장당 10MB · 최대 20장</small>
+        </div>
+        <input id="file-input" class="sr-only" type="file" accept="image/png,image/jpeg,image/webp" multiple aria-label="캡처 사진 선택">
+        <div id="upload-status" class="inline-status" role="status"></div>
+        <div id="photo-list" class="photo-list" aria-label="업로드한 사진"></div>
+        <p id="order-hint" class="order-hint" hidden>사진을 끌어 순서를 바꿀 수 있어요.</p>
+        <section class="references-section" aria-labelledby="references-heading">
+          <div class="references-heading"><h3 id="references-heading">참고자료 <span>선택</span></h3><span id="reference-count">0 / 5</span><button id="reference-read" type="button" class="button secondary" disabled>자료 읽기</button></div>
+          <p class="references-help" id="references-help">블로그·문서·공개 노션 링크를 남겨 주세요.<br>자료 읽기로 확인하고, 초안을 만들 때 함께 참고해요.</p>
+          <form id="reference-form" class="reference-form">
+            <input id="reference-url" type="url" maxlength="2048" placeholder="https://…" aria-label="참고자료 링크" aria-describedby="references-help" required>
+            <button id="reference-add" type="submit" class="button secondary">추가</button>
+          </form>
+          <p id="reference-status" class="reference-status" role="status"></p>
+          <div id="reference-list" class="reference-list"></div>
+        </section>
+        <div class="materials-form">
+          <label for="topic">어떤 작업을 기록할까요? <span>선택</span></label>
+          <input id="topic" maxlength="200" placeholder="예: Redis 연결 오류를 해결한 과정">
+          <label for="notes">사진에 담기지 않은 이야기 <span>선택</span></label>
+          <textarea id="notes" rows="5" maxlength="20000" placeholder="무엇을 만들고 있었나요?&#10;어디서 막혔고, 어떻게 해결했나요?&#10;&#10;짧게 적어도 괜찮아요."></textarea>
+        </div>
+        <button id="style-summary" class="style-summary"><span class="style-symbol" data-icon="feather"></span><span><strong>내가 설정한 말투로</strong><small>말투 직접 수정 · 참고 블로그 최대 3개</small></span><span aria-hidden="true">›</span></button>
+        <button id="generate" class="button primary generate-button" disabled><span data-icon="sparkles"></span><span id="generate-label">내 말투로 초안 만들기</span><span aria-hidden="true">↗</span></button>
+        <div id="generation-state" class="generation-state" role="status"><span class="connection-dot"></span><span>작성 연결을 확인하고 있어요</span></div>
+      </section>
+
+      <section class="draft-panel" aria-labelledby="draft-heading">
+        <div class="panel-heading draft-toolbar"><h2 id="draft-heading"><span data-icon="file"></span> 글 미리보기</h2><div class="draft-toolbar-actions"><button id="github-card" class="button secondary github-card-button" aria-pressed="false" disabled><span data-icon="github"></span> GitHub 카드</button><div class="view-switch" role="group" aria-label="글 보기 모드"><button id="edit-view" aria-pressed="false">편집</button><button id="preview-view" class="active" aria-pressed="true">미리보기</button></div></div></div>
+        <div id="changed-banner" class="changed-banner" hidden>자료가 바뀌었어요. 기존 글은 보관되어 있으며, 다시 생성하면 새 자료를 반영합니다.</div>
+        <section id="category-section" class="category-section" aria-label="발행 카테고리" hidden>
+          <label for="draft-category">글쓰기 · 발행 카테고리</label>
+          <div class="category-controls"><select id="draft-category" aria-describedby="category-status"><option value="0">카테고리 없음</option></select><button id="category-refresh" class="button secondary">카테고리 불러오기</button></div>
+          <p id="category-status" role="status">티스토리의 카테고리를 불러와 이 글을 넣을 곳을 선택하세요.</p>
+          <div class="writing-selection"><p id="writing-prompt-summary" role="status">기본 블로그용 프롬프트로 작성해요.</p><button id="writing-prompt-settings" class="text-button">글쓰기 프롬프트 설정</button></div>
+        </section>
+        <section id="cover-section" class="cover-section" aria-label="글 표지" hidden>
+          <div id="cover-preview" class="cover-preview"></div>
+          <div class="cover-content"><h3>표지 · 대표 이미지 <span id="cover-badge">자동</span></h3><p id="cover-description">첫 번째 본문 사진을 사용해요.</p>
+            <div class="cover-actions"><button id="choose-cover" class="button secondary">사진에서 선택</button><button id="upload-cover" class="button secondary">표지 업로드</button><button id="reset-cover" class="text-button" hidden>선택 해제</button></div>
+            <small>선택한 표지는 본문 맨 위에 배치돼요. PNG·JPG·WebP, 10MB 이하</small>
+          </div>
+          <input id="cover-file-input" type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" aria-label="표지 사진 파일">
+        </section>
+        <div class="paper-area">
+          <div id="empty-draft" class="empty-draft"><div class="empty-mark" aria-hidden="true"><span data-icon="feather"></span></div><span class="paper-label">아직 쓰이지 않은 이야기</span><h3>작업의 순간들이<br>하나의 글이 될 거예요.</h3><p>사진을 올리고 초안 만들기를 눌러보세요.<br>제목부터 설명, 사진 배치까지 함께 정리해요.</p><div class="empty-lines" aria-hidden="true"><i></i><i></i><i></i></div><button id="manual-start" class="text-button" disabled>직접 작성하기</button></div>
+          <article id="article-preview" class="article-preview hdev-article" hidden></article>
+          <div id="article-editor" class="article-editor" hidden>
+            <label class="sr-only" for="draft-title">글 제목</label><input id="draft-title" class="draft-title" placeholder="제목을 입력하세요">
+            <label class="sr-only" for="draft-tags">태그</label><input id="draft-tags" class="draft-tags" placeholder="태그를 쉼표로 구분해 입력">
+            <p class="editor-help">왼쪽 손잡이를 끌어 순서를 바꾸고, 항목 사이의 <strong>＋</strong>로 내용을 넣어보세요.</p>
+            <div id="editor-status" class="sr-only" role="status" aria-live="polite"></div>
+            <div id="block-editor"></div>
+            <div class="add-block"><select id="block-type" aria-label="추가할 내용 유형"><option value="paragraph">문단</option><option value="heading">소제목</option><option value="code">코드</option><option value="list">목록</option><option value="image">사진</option><option value="table">비교 표</option></select><button id="add-block" class="text-button">＋ 맨 뒤에 추가</button></div>
+          </div>
+        </div>
+        <div class="draft-footer"><span id="word-count">사진과 글이 함께 표시됩니다</span><span><span class="small-dot"></span> 발행 전, 내가 한 번 더</span></div>
+      </section>
+    </div>
+    <section id="review-section" class="review-section" hidden><details><summary><span data-icon="check"></span> 발행 전에 확인할 내용 <span>검토 메모 보기</span></summary><label class="sr-only" for="review-notes">검토 메모</label><textarea id="review-notes" rows="5"></textarea><details class="analysis-details"><summary>사진 분석 기록</summary><pre id="analysis-text"></pre></details></details></section>
+    <footer class="workspace-footer"><p><span data-icon="lock"></span> 초안 보관은 이 PC에 저장합니다. 발행을 누르면 검토한 글과 사진을 티스토리에 공개합니다.</p><button id="transfer" class="button primary" disabled>티스토리에 발행 <span aria-hidden="true">↗</span></button></footer>
+    <div id="publish-status" class="publish-status" role="status" hidden></div>
+  </main>
+
+  <section id="library-page" class="library-page" hidden aria-label="티스토리 기존 글 목록">
+    <header class="topbar"><div class="breadcrumb"><span>내 블로그</span><span>/</span><strong>티스토리 글</strong></div><div class="top-actions"><button id="manage-blog" class="button primary">티스토리 로그인</button><a id="open-blog-management" class="button secondary" target="_blank" rel="noopener noreferrer" hidden>글 관리 ↗</a></div></header>
+    <div class="library-content">
+      <div class="library-heading"><div><div class="workspace-kicker"><span class="small-dot"></span> 쌓아온 개발 기록</div><h1>내 블로그의 글들.</h1><p>기존 글을 찾아 읽고, 티스토리에서 이어서 수정하세요.</p></div><button id="sync-blog" class="button secondary">목록 새로고침 ↻</button></div>
+      <div class="blog-connect"><label for="blog-select">내 블로그</label><select id="blog-select"></select><button id="add-blog" class="text-button">＋ 블로그 추가</button><span id="library-updated" role="status"></span></div>
+      <div class="library-guide"><strong>로그인한 계정의 블로그와 글을 불러옵니다</strong><p><b>티스토리 로그인</b>을 누르면 내 블로그를 자동으로 찾습니다. 블로그가 여러 개면 사용할 블로그를 선택하세요. 글 수정은 <b>글 관리</b>에서 이어서 할 수 있어요.</p><small>아래는 연결한 블로그의 공개 글 목록입니다. 비공개 글과 임시글은 글 관리에서 확인하며, 앱에서 보관한 초안은 이 PC에 저장됩니다.</small></div>
+      <div class="library-filters"><input id="post-search" type="search" placeholder="제목이나 내용으로 글 찾기" aria-label="기존 글 검색"><select id="post-category" aria-label="카테고리 필터"><option value="">모든 카테고리</option></select><span id="public-post-count">공개 글 0개</span></div>
+      <p id="library-warning" class="library-warning" role="status" hidden></p>
+      <div id="public-posts" class="public-posts"></div>
+    </div>
+  </section>
+
+  <!-- 말투·분류별 지침 화면. hidden 표시를 JS가 바꿔 작업실과 화면을 전환한다. -->
+  <section id="style-page" class="style-page" aria-labelledby="style-heading" hidden>
+    <div class="style-content">
+      <header class="style-heading"><div><p class="workspace-kicker"><span class="small-dot"></span> 글쓰기 설정</p><h1 id="style-heading">글의 종류에 맞는 말투와 구성.</h1><p>기본 블로그용 프롬프트를 유지하고, 카테고리마다 필요한 지침을 따로 저장하세요.</p></div><button id="style-back" class="button secondary">작업실로 돌아가기</button></header>
+      <section class="category-writing-panel" aria-labelledby="category-writing-heading">
+        <div class="panel-heading"><h2 id="category-writing-heading">카테고리별 프롬프트</h2><span id="category-prompt-state" class="counter" role="status">불러오는 중</span></div>
+        <p class="style-help">뉴스는 핵심 소식 위주로, 회고는 선택과 배운 점 위주로. 말투·글의 순서·분량을 직접 정해 보세요. 저장한 지침은 다음 초안 생성부터 적용돼요.</p>
+        <div class="category-writing-layout">
+          <div class="category-writing-options">
+            <label for="prompt-category">설정할 카테고리</label><select id="prompt-category"></select>
+            <button id="prompt-category-refresh" class="text-button">카테고리 불러오기</button>
+            <p id="prompt-category-help" class="style-help" role="status"></p>
+            <label for="prompt-example">시작할 때 참고할 예시</label><select id="prompt-example"></select>
+            <button id="apply-prompt-example" class="button secondary">예시 가져오기</button>
+            <p class="style-help">예시를 가져온 뒤 원하는 말투로 수정하고 저장하세요. 예시 가져오기는 편집칸의 내용을 바꿉니다.</p>
+          </div>
+          <div class="category-writing-editor">
+            <label for="category-prompt">이 카테고리의 글쓰기 지침</label>
+            <textarea id="category-prompt" maxlength="10000" spellcheck="false" placeholder="예: AI 뉴스는 담백한 존댓말로 써줘. 핵심 소식, 바뀐 점, 개발자에게 주는 영향 순서로 구성하고 개인 회고는 넣지 마."></textarea>
+            <p class="style-help">비워서 저장하면 기본 블로그용 프롬프트를 사용합니다. 다른 카테고리와 기존 초안의 본문은 바뀌지 않아요.</p>
+            <div class="category-writing-footer"><span id="category-prompt-count">0 / 10,000자</span><button id="clear-category-prompt" class="text-button">기본 블로그용 사용</button><button id="save-category-prompt" class="button primary">카테고리 지침 저장</button></div>
+            <div class="category-writing-recovery"><button id="reload-category-prompt" class="text-button" hidden>최신 저장본 불러오기</button><button id="undo-category-prompt" class="text-button" hidden>편집 내용 되돌리기</button></div>
+          </div>
+        </div>
+      </section>
+      <div class="style-layout">
+        <section class="style-sources" aria-labelledby="style-sources-heading">
+          <div class="panel-heading"><h2 id="style-sources-heading">참고할 블로그</h2><span class="counter">최대 3개</span></div>
+          <p class="style-help">공개 블로그나 글 주소를 입력하세요. 블로그마다 본문을 최대 3개 읽고 말투와 글의 흐름을 분석해요.</p>
+          <form id="style-analyze-form">
+            <label for="style-url-1">첫 번째 블로그</label><input id="style-url-1" type="url" maxlength="2048" placeholder="https://my-blog.tistory.com">
+            <label for="style-url-2">두 번째 블로그 <span>선택</span></label><input id="style-url-2" type="url" maxlength="2048" placeholder="https://blog.naver.com/my-blog">
+            <label for="style-url-3">세 번째 블로그 <span>선택</span></label><input id="style-url-3" type="url" maxlength="2048" placeholder="https://내가-좋아하는-블로그.com">
+            <button id="analyze-style" class="button secondary" type="submit"><span data-icon="sparkles"></span> 블로그 말투 분석하기</button>
+          </form>
+          <p class="style-help style-privacy">공개 본문을 <span id="style-ai-provider">Codex</span>로 분석하며 계정 사용량을 사용해요. 본문을 읽을 수 없는 블로그는 분석 결과에 안내합니다.</p>
+          <div id="style-analysis-status" class="style-analysis-status" role="status"></div>
+          <ul id="style-warnings" class="style-warnings"></ul>
+          <details id="style-evidence" hidden><summary>분석에 참고한 글</summary><ul id="style-source-list"></ul></details>
+        </section>
+        <section class="style-editor-panel" aria-labelledby="style-editor-heading">
+          <div class="panel-heading"><h2 id="style-editor-heading"><span data-icon="feather"></span> 기본 블로그용 프롬프트</h2><span id="style-save-state" class="counter" role="status">불러오는 중</span></div>
+          <p class="style-help">기존에 사용하던 지침입니다. 별도 지침이 없는 카테고리에 그대로 적용돼요. 카테고리 지침이 있으면 말투와 구성은 해당 지침을 우선합니다.</p>
+          <label class="sr-only" for="style-profile">말투 지침</label><textarea id="style-profile" maxlength="20000" spellcheck="false" placeholder="예: 편한 존댓말을 사용해요. 한 문장은 짧게 쓰고, 시도한 과정과 결과를 차근차근 설명해요."></textarea>
+          <div class="style-editor-footer"><span id="style-character-count">0 / 20,000자</span><button id="reload-style" class="text-button" hidden>최신 저장본 불러오기</button><button id="save-style" class="button primary"><span data-icon="save"></span> 말투 저장</button></div>
+          <section id="style-result" class="style-result" hidden><h3>블로그에서 분석한 말투</h3><p class="style-help">결과를 읽고 지침에 가져온 뒤, 원하는 표현으로 수정해 보세요.</p><pre id="style-result-text"></pre><button id="apply-style-result" class="button secondary">이 결과로 지침 바꾸기</button><button id="undo-style-result" class="text-button" hidden>가져오기 전으로 되돌리기</button></section>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <dialog id="modal"><div class="modal-header"><h2 id="modal-title"></h2><button id="close-modal" class="icon-button" aria-label="닫기">×</button></div><div id="modal-content"></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

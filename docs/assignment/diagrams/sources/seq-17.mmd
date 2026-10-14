@@ -1,0 +1,27 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant B as 공개 웹
+participant A as AI CLI
+participant J as Java 저장 모듈
+participant F as 전용 자료 폴더
+
+ U->>W: 공개 블로그 주소로 말투 분석
+ W->>N: POST /api/style/analyze
+ N->>J: style.analysis.save(running)
+ N-->>W: 202 진행 상태
+ N->>B: 공개 글 수집
+ B-->>N: 본문 표본과 출처
+ N->>A: analyzeWritingStyle
+ A-->>N: 분석한 profile
+ N->>J: style.analysis.save(done 또는 error)
+ J->>F: analysis.json
+ W->>N: GET /api/style 반복 조회
+ N-->>W: 검토할 결과
+ opt 사용자가 결과를 채택하고 보관
+ U->>W: 분석 지침 반영·저장
+ W->>N: PUT /api/style(analysisId, revision)
+ N->>J: style.save
+ end

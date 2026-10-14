@@ -1,0 +1,10 @@
+{
+  "name": "hdev-assignment-diagram-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "과제 다이어그램 문서만 만드는 도구. 앱 실행 의존성과 분리한다.",
+  "dependencies": {
+    "hdev-studio-java-assignment": "file:../..",
+    "mermaid": "12.0.0"
+  }
+}

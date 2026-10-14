@@ -1,0 +1,15 @@
+stateDiagram-v2
+ [*] --> collecting
+ collecting --> ready : ready 실행
+ ready --> changed : 사진·메모·참고자료 변경
+ changed --> ready : ready 다시 실행
+ ready --> prepared : prepare로 manifest 생성
+ prepared --> local_draft : render로 preview 생성
+ prepared --> changed : 원본 입력 변경
+ local_draft --> changed : 원본 입력 변경
+ local_draft --> saved_recorded : 유효한 tistory_receipt 확인
+ local_draft --> remote_review_needed : 영수증이 있으나 내용 불일치
+ saved_recorded --> remote_review_needed : 초안 변경으로 영수증 불일치
+ ready --> error : 입력·파일 읽기 실패
+ prepared --> error : 읽기 실패
+ error --> ready : 파일 복구 후 재조회한 예

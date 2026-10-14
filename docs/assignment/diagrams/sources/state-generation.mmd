@@ -1,0 +1,10 @@
+stateDiagram-v2
+ [*] --> idle
+ idle --> generating : 생성 요청 허용
+ generating --> generating : 진행 message 갱신
+ generating --> done : 생성·검증·보관 완료
+ generating --> error : CLI / 검증 / 저장 오류
+ done --> generating : 재생성
+ error --> generating : 사용자 재시도
+ generating --> error : 재시작 후 generating 메타 감지
+ done --> idle : 앱 재시작 후 메모리 상태 초기화

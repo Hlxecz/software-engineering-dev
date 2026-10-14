@@ -1,0 +1,23 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant E as Electron 연결
+participant T as 티스토리
+
+ U->>W: 티스토리 로그인 클릭
+ W->>N: POST /api/tistory/connect
+ N->>E: accountReader()
+ E->>T: 계정 페이지 열기
+ U->>T: 필요하면 직접 로그인
+ E->>T: 소유 블로그 목록 읽기
+ alt 목록 확인 성공
+ T-->>E: 관리 주소와 블로그 이름
+ E-->>N: 블로그 목록
+ N->>N: 주소·중복 검증, 메모리 목록 유지
+ N-->>W: 단일 자동 선택 또는 선택 목록
+ else 취소 또는 목록 오류
+ E-->>N: 오류
+ N-->>W: 오류 안내
+ end

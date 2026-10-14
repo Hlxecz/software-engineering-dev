@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-06T05:39:23.175Z",
+  "criterion": "코드블록·HTML주석·표행·제목·그림행 제거, Markdown 링크(문구 포함)·HTML태그·서식기호 제거 후 남은 서술 문단과 공백 제외 문자 수. 총파일줄수나 기능 수를 평가하지 않음.",
+  "before": {
+    "file": ".runtime/assignment1-before-step-refinement-20261004/docs/assignment/project-management/README.md",
+    "sha256": "f7a143de13ad606e6036ed69bc429ecbcbb68b889f657b7af61c192af3606871",
+    "paragraphs": 31,
+    "charactersWithoutWhitespace": 3927
+  },
+  "after": {
+    "files": [
+      "01-대상제어기.md",
+      "02-목표와범위.md",
+      "03-시스템관계와이해관계자.md",
+      "04-제약과위험.md",
+      "05-규모와시간산정.md",
+      "06-업무분해와일정.md"
+    ],
+    "sourceSha256": "f2ff9b407d0365677578c2c79915125af4b69f0b6f5c0e3819e86a81c93abd4b",
+    "paragraphs": 52,
+    "charactersWithoutWhitespace": 3315
+  },
+  "characterReductionPercent": 15.6
+}

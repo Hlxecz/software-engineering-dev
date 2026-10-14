@@ -1,0 +1,92 @@
+{
+  "name": "hdev-studio-java-assignment",
+  "private": true,
+  "version": "0.7.4-java.1",
+  "description": "H.Dev Studio Java 과제 프로젝트 (v0.7.4 기반)",
+  "author": "H.Dev",
+  "main": "desktop/main.mjs",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "start": "node scripts/server.mjs",
+    "blog": "node scripts/blog.mjs",
+    "test": "node --test",
+    "test:desktop": "electron validation/electron-publish.mjs",
+    "test:categories": "electron validation/electron-categories.mjs",
+    "test:writing": "electron validation/electron-writing-prompts.mjs",
+    "test:setup": "electron validation/electron-blog-setup.mjs",
+    "test:account": "electron validation/electron-account.mjs",
+    "desktop": "electron .",
+    "release:check": "node scripts/release.mjs check",
+    "release:checksums": "node scripts/release.mjs checksums",
+    "build:exe": "node scripts/release.mjs build",
+    "java:build": "node scripts/java/build.mjs",
+    "presetup": "npm run java:build",
+    "prestart": "npm run java:build",
+    "predesktop": "npm run java:build",
+    "preblog": "npm run java:build",
+    "pretest": "npm run java:build",
+    "pretest:desktop": "npm run java:build",
+    "pretest:categories": "npm run java:build",
+    "pretest:writing": "npm run java:build",
+    "prebuild:exe": "npm run java:build",
+    "test:java": "npm run java:build && node --test test/java-integration.test.mjs",
+    "pretest:setup": "npm run java:build",
+    "pretest:account": "npm run java:build"
+  },
+  "devDependencies": {
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3"
+  },
+  "dependencies": {
+    "cheerio": "1.2.0"
+  },
+  "build": {
+    "appId": "com.hdev.studio.java.assignment",
+    "productName": "H.Dev Studio Java",
+    "directories": {
+      "output": "dist",
+      "buildResources": "desktop/assets"
+    },
+    "files": [
+      "desktop/**/*",
+      "scripts/**/*",
+      "web/**/*",
+      "config/**/*",
+      "docs/WRITING.md",
+      "AGENTS.md",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "desktop/publish.mjs"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "desktop/assets/icon.ico"
+    },
+    "portable": {
+      "artifactName": "HDev-Studio-${version}-win-x64.exe"
+    },
+    "extraResources": [
+      {
+        "from": "java-backend/build/blog-storage.jar",
+        "to": "java-backend/build/blog-storage.jar"
+      },
+      {
+        "from": "java-backend/lib/gson-2.13.2.jar",
+        "to": "java-backend/lib/gson-2.13.2.jar"
+      },
+      {
+        "from": "java-backend/THIRD-PARTY.md",
+        "to": "java-backend/THIRD-PARTY.md"
+      },
+      {
+        "from": "java-backend/LICENSE-gson.txt",
+        "to": "java-backend/LICENSE-gson.txt"
+      }
+    ]
+  }
+}

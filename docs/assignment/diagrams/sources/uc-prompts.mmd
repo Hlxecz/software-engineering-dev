@@ -1,0 +1,23 @@
+flowchart LR
+ U["사용자"]
+ DEV["개발자 · CLI 사용자"]
+ subgraph APP["H.Dev Studio Java · AI와 글쓰기 지침"]
+ G(["UC-13
+AI 초안 생성·재생성"])
+ B(["UC-15
+기본 프롬프트 관리"])
+ C(["UC-16
+분류별 프롬프트 관리"])
+ A(["UC-17
+공개 글 말투 분석"])
+ INPUT(["입력 사본·적용 지침 고정"])
+ CLI(["UC-21
+CLI 준비·목록·미리보기"])
+ G -. "«include»" .-> INPUT
+ end
+ AI["Codex / Claude CLI"]
+ WEB["공개 블로그"]
+ U --- G & B & C & A
+ DEV --- CLI
+ G --- AI
+ A --- AI & WEB

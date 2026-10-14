@@ -1,0 +1,346 @@
+{
+  "reviewDate": "2026-10-07",
+  "round": 1,
+  "status": "final_pass",
+  "htmlSha256": "4d09e9bf18c361af75a0b936a5ba20de0d3421189f7fcf909fe962c035e44fdf",
+  "htmlUnchangedDuringPrint": true,
+  "pdfSha256": "a674c9449fc45748b9f124e937f44b925b8cc7d05c30573c5e10b62ab4705134",
+  "pdfBytes": 1042301,
+  "pageCount": 26,
+  "pageSizePoints": [
+    594.95996,
+    841.91998
+  ],
+  "coverPage": 1,
+  "contentsPage": 2,
+  "stageStartPages": [
+    3,
+    5,
+    10,
+    15,
+    17,
+    20
+  ],
+  "allPagesReviewedViaContactSheets": false,
+  "all15RenderedDiagramsVisuallyConfirmed": true,
+  "figurePages": [
+    {
+      "source": "그림/01-제어개념.svg",
+      "caption": "입력부터 결과와 오류 피드백까지의 제어 개념",
+      "pages": [
+        3
+      ]
+    },
+    {
+      "source": "그림/01-1-작성발행-활동.svg",
+      "caption": "작성·검토·발행 활동",
+      "pages": [
+        4
+      ]
+    },
+    {
+      "source": "그림/02-내부책임과통신.svg",
+      "caption": "화면·Electron Node·요청별 Java 프로세스와 파일 책임",
+      "pages": [
+        7
+      ]
+    },
+    {
+      "source": "그림/02-1-수동초안저장-시퀀스.svg",
+      "caption": "UC08/09 수동 초안 보관 시퀀스",
+      "pages": [
+        8
+      ]
+    },
+    {
+      "source": "그림/03-시스템관계.svg",
+      "caption": "앱 전체와 외부 대상의 Context Diagram",
+      "pages": [
+        10
+      ]
+    },
+    {
+      "source": "그림/03-1-유스케이스-글작업.svg",
+      "caption": "글 작업 유스케이스",
+      "pages": [
+        11
+      ]
+    },
+    {
+      "source": "그림/03-2-유스케이스-실행연결.svg",
+      "caption": "실행과 연결 유스케이스",
+      "pages": [
+        12
+      ]
+    },
+    {
+      "source": "그림/03-3-유스케이스-AI지침.svg",
+      "caption": "AI와 지침 유스케이스",
+      "pages": [
+        13
+      ]
+    },
+    {
+      "source": "그림/05-1-Java클래스관계.svg",
+      "caption": "Java 11개 클래스의 핵심 관계",
+      "pages": [
+        18
+      ]
+    },
+    {
+      "source": "그림/05-규모와시간산정.svg",
+      "caption": "기준 업무·위험 예비·계획 기간과 가용 용량의 산정",
+      "pages": [
+        19
+      ]
+    },
+    {
+      "source": "그림/06-1-업무분해-분석기반저장.svg",
+      "caption": "WBS 1–3: 분석·기반·저장 업무",
+      "pages": [
+        20
+      ]
+    },
+    {
+      "source": "그림/06-2-업무분해-지침연결보존.svg",
+      "caption": "WBS 4–6: 지침·연결·기존 기능 보존 업무",
+      "pages": [
+        21
+      ]
+    },
+    {
+      "source": "그림/06-3-업무분해-검증인계관리.svg",
+      "caption": "WBS 7–9: 검증·인계·공통 관리 업무",
+      "pages": [
+        22
+      ]
+    },
+    {
+      "source": "그림/06-4-업무선행관계.svg",
+      "caption": "구축 단계의 선행 관계와 공통 관리",
+      "pages": [
+        24
+      ]
+    },
+    {
+      "source": "그림/06-5-시간비례일정.svg",
+      "caption": "0–200시간과 0–10주 축의 1인 작업 배분",
+      "pages": [
+        25
+      ]
+    }
+  ],
+  "useCases21AndClasses11Readable": true,
+  "allNewDiagramShapesAndRelationshipsVisible": true,
+  "newSvgMinimumPt": {
+    "01-1-작성발행-활동.svg": 8.104,
+    "02-1-수동초안저장-시퀀스.svg": 8.515,
+    "03-1-유스케이스-글작업.svg": 10.203,
+    "03-2-유스케이스-실행연결.svg": 10.203,
+    "03-3-유스케이스-AI지침.svg": 10.203,
+    "05-1-Java클래스관계.svg": 10.203
+  },
+  "fontThresholdScope": "기존검사범위동일:새6SVG의tspan/text8pt하한.기존9개는직전실물검토와이번본문PNG전체동일성으로읽기유지확인.",
+  "clippingObserved": 0,
+  "diagramLabelOverlapObserved": 0,
+  "orphanedStageIntroPages": [],
+  "noteOnlyOverflowPages": [],
+  "blankPages": [],
+  "finalRequirementTableAllSixRowsOnPage": 26,
+  "all24LeafTraceRowsPresentOnPage": 23,
+  "automaticErrors": [],
+  "requiredFixes": [],
+  "sourceAndToolsModifiedByReviewer": false,
+  "finalDeliveryPdfCopied": true,
+  "userNameAndStudentIdNotInvented": true,
+  "screenshots": [
+    "contact-1.png",
+    "contact-2.png",
+    "contact-3.png",
+    "contact-4.png",
+    "page-01.png",
+    "page-02.png"
+  ],
+  "automaticChecksLimit": "존재·누락·글자크기·안전여백 검사만으로 라벨/선 겹침통과를주장하지않으며 전체실물시각검토로함께판정한다.",
+  "qaFileSha256": {
+    "contact-1.png": "9ca0ef07de81fc115007c11193653bd7be57750f7cd55ae8fc7ef63a7665c105",
+    "contact-2.png": "92a956f70b70ebddb5671df6d53093e2a998c60513903e0daf9df53f645d44c3",
+    "contact-3.png": "15ceac286e4fa2e3ffb9e2d6a16ca36cdb551b4ee8280be3b9048788f15f36c3",
+    "contact-4.png": "acf10a28e866b217aefd56fbdc2b490fd52bd678b62e0c68d1dfee1c9439e453",
+    "page-01.png": "2b4ca56ff1f786f0bbe35de221d29f93885f11c67d100fb77e79643816077aa5",
+    "page-02.png": "62ffd7ee162aabcc40f92733463b5d0c736a3f22a32ab5de33c20508d8924ad7"
+  },
+  "deliveryPdf": "docs/assignment/과제1-프로젝트관리/통합보고서.pdf",
+  "deliveryReview": "docs/assignment/과제1-프로젝트관리/검증자료/인쇄검사.json",
+  "deliveryPdfHashAndBytesVerified": true,
+  "previousAstraReview": {
+    "status": "pass",
+    "requiredFixes": [],
+    "samePdfHashVerified": true,
+    "scope": "2026-10-06 pass-4 PDF의 전체26쪽 인쇄 배치·15그림 내용과 도형·라벨을 합동 검토하여 최종 통과한 기록. 이번 표지 수정 검토와 구분한다.",
+    "reviewDate": "2026-10-06"
+  },
+  "currentCoverAndContact1VisuallyReviewed": true,
+  "bodyVisualReviewBasis": "직전2026-10-06 최종본은전체26쪽실물시각검토통과.이번2–26쪽은같은120dpiPNG25개전체와추출텍스트25쪽이모두완전동일하여이전시각판정을보존한다.",
+  "all25BodyPageTextsAndPixelsIdentical": true,
+  "bodyPageComparisons": [
+    {
+      "page": 2,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 3,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 4,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 5,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 6,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 7,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 8,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 9,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 10,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 11,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 12,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 13,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 14,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 15,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 16,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 17,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 18,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 19,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 20,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 21,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 22,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 23,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 24,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 25,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    },
+    {
+      "page": 26,
+      "extractedTextIdentical": true,
+      "renderedPixelsIdentical": true
+    }
+  ],
+  "schoolSubmissionFields": [
+    {
+      "label": "성명",
+      "value": "장형준"
+    },
+    {
+      "label": "학번",
+      "value": "22413564"
+    },
+    {
+      "label": "전공",
+      "value": "컴퓨터공학전공"
+    },
+    {
+      "label": "제출일",
+      "value": "2026년 10월 7일"
+    }
+  ],
+  "removedCoverPhrasesAbsent": true,
+  "longHashAbsentFromCover": true,
+  "coverTextClippingObserved": 0,
+  "currentAutomaticErrors": [],
+  "finalAstraReview": {
+    "reviewDate": "2026-10-07",
+    "status": "pass",
+    "requiredFixes": [],
+    "scope": "학교 제출용 표지 PNG 직접 시각 검토, HTML/PDF 해시 직접 계산 일치, 본문 p2–26의 120dpi PNG SHA256 25개를 이전 최종본과 직접 비교하여 모두 동일 확인. 부모가 최종 판정 전달. 이번에 본문 그림 내용을 새로 재검토했다고 주장하지 않는다.",
+    "coverDirectlyVisuallyReviewed": true,
+    "htmlAndPdfHashesDirectlyVerified": true,
+    "all25BodyPngHashesDirectlyComparedAndIdentical": true
+  },
+  "onlyCoverChangedFromPreviousPdf": true,
+  "reviewScopeSeparation": "2026-10-06: 전체26쪽 시각·그림내용 검토.2026-10-07: 표지 직접시각·제출정보4개/문구삭제 확인과후속25쪽텍스트/PNG완전동일성 검증."
+}

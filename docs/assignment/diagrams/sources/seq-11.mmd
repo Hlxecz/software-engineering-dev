@@ -1,0 +1,21 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant J as Java 저장 모듈
+participant F as 전용 자료 폴더
+
+ U->>W: 선택한 글 삭제 확인
+ W->>N: DELETE /api/jobs/id
+ N->>N: 생성·발행·자료 읽기 중인지 검사
+ N->>J: storage.delete(inbox, drafts, id)
+ J->>F: 두 대상의 경로·링크·전체 트리 검사
+ alt 검사 통과
+ J->>F: 파일부터 지우고 부모 폴더 삭제
+ J-->>N: 삭제 용량
+ N-->>W: 글 목록 갱신
+ else 경로 또는 파일 오류
+ J-->>N: 오류
+ N-->>W: 삭제 실패 안내
+ end

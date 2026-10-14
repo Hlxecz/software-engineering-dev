@@ -1,0 +1,36 @@
+name: Windows checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - run: npm run setup
+      - run: npm run release:check
+      - run: npm test
+      - run: npm run test:desktop
+      - run: npm run test:categories
+      - run: npm run test:writing
+      - run: npm run test:setup
+      - run: npm run test:account

@@ -1,0 +1,20 @@
+flowchart LR
+ APP["createApp
+요청 조정"] --> GENERATOR["외부에서 받은 generator 함수
+실제 AI / 테스트 대체"]
+ APP --> PUBLISHER["외부에서 받은 publishAdapter
+실제 편집기 / 모의 편집기"]
+ APP --> BRIDGE["javaStore
+프로세스 연결을 감싸는 Adapter 역할"]
+ BRIDGE --> MAIN["Main
+요청 분배"]
+ MAIN --> DR["DraftRepository
+초안 보관 책임"]
+ MAIN --> SS["SnapshotService
+입력 사본 책임"]
+ JR["JobRepository
+재료 저장·조회"] --> WS["구체 Workspace"]
+ DR --> JR
+ SS --> JR
+ DR --> WS
+ SS --> WS

@@ -1,0 +1,38 @@
+classDiagram
+direction TB
+class Main {
+ +main(args)
+ -dispatch(workspace, request)
+ }
+class Workspace {
+ +Path root
+ +config()
+ +safe(value)
+ +configured(key)
+ +savedDirectory(id, meta)
+ +regular(file)
+ }
+class JobRepository {
+ -Workspace workspace
+ +create(id, initial)
+ +save(id, value)
+ +read(id)
+ +saveMeta(id, patch)
+ +upload(id, value)
+ +readImage(id, value)
+ }
+class DraftRepository {
+ -Workspace workspace
+ -JobRepository jobs
+ +save(id, value)
+ }
+class AppException {
+ +int status
+ +require(condition, message)$
+ }
+
+ Main ..> Workspace : 자료 위치와 잠금 경로
+ Main ..> JobRepository : 글 관련 작업
+ Main ..> DraftRepository : draft.save
+ Main ..> AppException : 상태 코드 판별
+ DraftRepository --> JobRepository

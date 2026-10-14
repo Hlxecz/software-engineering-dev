@@ -1,0 +1,26 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant J as Java 저장 모듈
+participant F as 전용 자료 폴더
+participant R as 공통 렌더러
+
+ U->>W: 초안 보관
+ W->>N: PUT /api/jobs/id/draft
+ N->>N: 본문 블록·카드·표지 검증
+ N->>J: draft.save
+ J->>J: 경로·글 ID·분류·사진 해시 검사
+ alt 검증 통과
+ J->>F: 기존 초안·관련 JSON을 history로 복사
+ J->>F: draft.json, review.md, app.json 저장
+ J-->>N: ok true
+ N->>R: renderDraft로 미리보기 생성
+ N->>J: job.read
+ J-->>N: 저장 자료
+ N-->>W: 보관됨
+ else 검증 실패
+ J-->>N: ok false와 오류
+ N-->>W: 오류 표시
+ end

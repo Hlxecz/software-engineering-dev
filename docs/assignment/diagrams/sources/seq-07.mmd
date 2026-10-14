@@ -1,0 +1,24 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant W as 화면 JS
+participant N as Node API
+participant J as Java 저장 모듈
+participant B as 공개 웹
+participant F as 전용 자료 폴더
+
+ U->>W: 최대 5개 HTTPS 주소 또는 본문 입력
+ W->>N: PUT 글 재료 보관
+ N->>J: job.save(references)
+ U->>W: 자료 읽기
+ W->>N: POST /api/jobs/id/references/read
+ N-->>W: 202 reading
+ N->>B: collectReferences로 본문 수집
+ B-->>N: 내용과 읽기 보고서
+ N->>J: job.references.check
+ J->>F: references-check.json 저장
+ N->>N: done 또는 error 상태
+ loop 읽기가 끝날 때까지
+ W->>N: GET /api/jobs/id
+ N-->>W: 진행 상태와 보고서
+ end

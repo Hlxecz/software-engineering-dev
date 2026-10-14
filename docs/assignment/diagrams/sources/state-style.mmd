@@ -1,0 +1,10 @@
+stateDiagram-v2
+ [*] --> idle
+ idle --> running : 분석 요청
+ running --> running : 수집·AI 진행 문구 저장
+ running --> done : 유효한 분석 결과
+ running --> error : 수집·AI·형식 오류
+ running --> error : 앱 재시작 때 중단 감지
+ done --> running : 새 분석
+ error --> running : 다시 분석
+ done --> done : 사용자가 결과 채택 후 기본 지침 별도 저장

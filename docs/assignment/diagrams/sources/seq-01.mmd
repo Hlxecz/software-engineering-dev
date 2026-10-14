@@ -1,0 +1,21 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant E as Electron 연결
+participant J as Java 저장 모듈
+participant N as Node API
+participant F as 전용 자료 폴더
+participant W as 화면 JS
+
+ U->>E: Start-Desktop.cmd 실행
+ E->>F: initializeData로 전용 자료 준비
+ E->>N: createApp(root, 연결 함수들)
+ N->>J: health 및 저장 설정 조회
+ J-->>N: Java 버전과 상태
+ N-->>E: 로컬 서버
+ E->>N: listen(0, 127.0.0.1)
+ E->>W: BrowserWindow.loadURL
+ W->>N: GET /api/bootstrap, GET /api/jobs
+ N->>J: 카테고리·지침·글 목록 조회
+ J-->>N: 저장 데이터
+ N-->>W: 설정·토큰·보관함

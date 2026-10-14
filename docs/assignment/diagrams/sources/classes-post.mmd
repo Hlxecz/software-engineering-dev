@@ -1,0 +1,54 @@
+classDiagram
+direction TB
+class JobRepository {
+ -Workspace workspace
+ +create(id, initial)
+ +save(id, value)
+ +read(id)
+ +saveMeta(id, patch)
+ +upload(id, value)
+ +readImage(id, value)
+ }
+class DraftRepository {
+ -Workspace workspace
+ -JobRepository jobs
+ +save(id, value)
+ }
+class SnapshotService {
+ -Workspace workspace
+ -JobRepository jobs
+ -input(id)
+ +ready(id)
+ +prepare(id)
+ +list()
+ }
+class StorageService {
+ -Workspace workspace
+ +inspect(bases, id, delete)
+ }
+class Workspace {
+ +Path root
+ +config()
+ +safe(value)
+ +configured(key)
+ +savedDirectory(id, meta)
+ +regular(file)
+ }
+class JsonFiles {
+ +obj(pairs)$
+ +read(file)$
+ +write(file, value)$
+ +writeText(file, value)$
+ +compact(value)$
+ +sha(bytes)$
+ }
+
+ JobRepository --> Workspace
+ DraftRepository --> Workspace
+ SnapshotService --> Workspace
+ StorageService --> Workspace
+ DraftRepository --> JobRepository : 현재 초안 위치 갱신
+ SnapshotService --> JobRepository : 사진 목록
+ JobRepository ..> JsonFiles
+ DraftRepository ..> JsonFiles
+ SnapshotService ..> JsonFiles

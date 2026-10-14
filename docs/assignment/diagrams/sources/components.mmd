@@ -1,0 +1,23 @@
+flowchart TB
+ UI["web
+입력 · 편집 · 미리보기"] -->|HTTP| API["scripts/server.mjs
+로컬 API · 작업 조정"]
+ DESK["desktop/main.mjs
+창 · 메뉴 · 수명 관리"] --> API
+ DESK --> AD["계정 · 분류 · 발행 연결 함수"]
+ API --> AD
+ API --> AI["generate / style / ai
+CLI와 공개 자료 수집"]
+ API --> LIB["tistory / publication
+공개 목록·발행 상태"]
+ API --> BR["java-store
+프로세스·JSON 변환"]
+ BR --> JAVA["Java Main + 10개 담당 클래스"]
+ JAVA --> FS[("전용 JSON·사진 자료")]
+ LIB --> FS
+ API --> PREVIEW["scripts/blog.mjs
+Node 본문 검증·파일 미리보기"]
+ PREVIEW --> R["web/draft-model / article-renderer
+공통 본문 모델·HTML"]
+ API --> R
+ UI --> R

@@ -1,0 +1,25 @@
+classDiagram
+ direction LR
+ class DraftService {
+  <<미구현_제안>>
+  -DraftStore store
+  +saveDraft(value)
+ }
+ class DraftStore {
+  <<interface>>
+  +load(id)
+  +save(id, draft)
+ }
+ class FileDraftStore {
+  <<미구현_제안>>
+  +load(id)
+  +save(id, draft)
+ }
+ class InMemoryDraftStore {
+  <<미구현_테스트_제안>>
+  +load(id)
+  +save(id, draft)
+ }
+ DraftService --> DraftStore : 필요한 저장 계약
+ DraftStore <|.. FileDraftStore
+ DraftStore <|.. InMemoryDraftStore

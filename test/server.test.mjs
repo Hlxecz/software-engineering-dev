@@ -1,0 +1,445 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { createApp } from '../scripts/server.mjs';
+import { buildPreview } from '../scripts/blog.mjs';
+import { articleBlocks } from '../web/draft-model.js';
+
+const PNG = fs.readFileSync(new URL('./fixtures/redis-test.png', import.meta.url));
+const draftFor = image => ({ title:'검증용 개발 기록', tags:['테스트'], blocks:[{ type:'paragraph', text:'관찰한 내용을 정리합니다.' },{ type:'image',file:image,alt:'가상 테스트 캡처',caption:'앱 검증 자료' }] });
+
+test('category selection before the first draft uses frozen prompts and keeps the original default', async t => {
+  const category = { blogUrl:'https://example.tistory.com', id:'11', path:['AI','뉴스'] };
+  const received = []; let release, wait = true;
+  const gate = new Promise(resolve => { release = resolve; });
+  const { request, id, job, root } = await fixture(t, async input => {
+    received.push(input); if (wait) await gate;
+    return { draft:draftFor(job.images[0].name), analysis:'분석', review:'', sensitiveImages:[] };
+  });
+  const initial = (await request('/api/writing-prompts')).data;
+  assert.equal((await request('/api/writing-prompts','PUT',{category,prompt:'권한 없는 변경',revision:initial.revision},{'X-App-Token':'bad'})).status,403);
+  let saved = await request('/api/writing-prompts','PUT',{category,prompt:'뉴스 첫 지침',revision:initial.revision});
+  assert.equal(saved.status,200);
+  const input = { title:'AI 소식',notes:'발표 자료',order:job.images.map(item=>item.name),category };
+  const selected = await request(`/api/jobs/${id}`,'PUT',input);
+  assert.equal(selected.data.draft,null); assert.deepEqual(selected.data.category,category);
+  assert.equal((await request(`/api/jobs/${id}`,'PUT',{...input,category:{...category,blogUrl:'https://other.tistory.com'}})).status,400);
+  assert.deepEqual((await request(`/api/jobs/${id}`)).data.category,category);
+  const start = await request(`/api/jobs/${id}/generate`,'POST'); assert.equal(start.status,202);
+  assert.equal((await request('/api/blog-settings','PUT',{blogUrl:'https://other.tistory.com'})).status,409);
+  saved = await request('/api/writing-prompts','PUT',{category,prompt:'뉴스 새 지침',revision:saved.data.revision});
+  fs.writeFileSync(path.join(root,'style.md'),'바뀐 기본 지침');
+  wait=false; release();
+  const first = await settled(request,id);
+  assert.equal(first.generation.phase,'done'); assert.deepEqual(first.draft.category,category);
+  assert.equal(received[0].style,'테스트 문체'); assert.equal(received[0].writing.prompt,'뉴스 첫 지침');
+  assert.equal(first.writingContext.prompt,'뉴스 첫 지침'); assert.equal(first.writingContext.style,'테스트 문체');
+  await request(`/api/jobs/${id}/generate`,'POST'); const second = await settled(request,id);
+  assert.equal(received[1].writing.prompt,'뉴스 새 지침'); assert.equal(received[1].style,'바뀐 기본 지침');
+  assert.deepEqual(second.category,category);
+  const noCategory = structuredClone(second.draft); delete noCategory.category;
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft:noCategory,review:''});
+  await request(`/api/jobs/${id}/generate`,'POST'); await settled(request,id);
+  assert.deepEqual(received[2].writing,{category:{blogUrl:category.blogUrl,id:'0',path:['카테고리 없음']},prompt:''});
+  assert.equal((await request('/api/style')).data.profile,'바뀐 기본 지침');
+});
+
+test('blog setup blocks example destinations and switches target without changing stored drafts or other settings', async t => {
+  let reads = 0;
+  const {root,request,id,job}=await fixture(t,undefined,null,{categoryReader:async({blogUrl})=>{reads++;return [{blogUrl,id:'0',path:['카테고리 없음']}];}});
+  const configFile=path.join(root,'tistory.config.json'), original=JSON.parse(fs.readFileSync(configFile));
+  const draft={...draftFor(job.images[0].name),category:{blogUrl:original.blogUrl,id:'0',path:['카테고리 없음']}};
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft,review:''});
+  assert.equal((await request('/api/blog-settings','PUT',{blogUrl:'https://your-blog.tistory.com'})).status,409);
+  assert.equal((await request('/api/blog-settings','PUT',{blogUrl:'https://example.com'})).status,400);
+  assert.deepEqual(JSON.parse(fs.readFileSync(configFile)),original);
+  assert.equal((await request('/api/blog-settings','PUT',{blogUrl:'https://new-blog.tistory.com/'},{'X-App-Token':'bad'})).status,403);
+  const saved=await request('/api/blog-settings','PUT',{blogUrl:'https://new-blog.tistory.com/'});
+  assert.equal(saved.status,200);assert.equal(saved.data.blogConfigured,true);
+  assert.deepEqual(JSON.parse(fs.readFileSync(configFile)),{...original,blogUrl:'https://new-blog.tistory.com'});
+  assert.equal((await request('/api/bootstrap')).data.blogUrl,'https://new-blog.tistory.com');
+  assert.deepEqual((await request(`/api/jobs/${id}`)).data.draft,draft);
+  assert.equal((await request('/api/categories','POST')).data.blogUrl,'https://new-blog.tistory.com');assert.equal(reads,1);
+});
+
+test('an unconfigured app cannot open a category reader or publish to the example blog', async t => {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'hdev-setup-test-'));
+  fs.writeFileSync(path.join(root,'tistory.config.json'),JSON.stringify({blogUrl:'https://your-blog.tistory.com',inbox:'inbox',output:'drafts',styleSamples:'style',styleProfile:'style.md'}));
+  const server=createApp({root,checkGenerator:async()=>true,categoryReader:async()=>assert.fail('must not open example blog'),publishAdapter:async()=>assert.fail('must not publish')});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  t.after(async()=>{await new Promise(resolve=>server.close(resolve));assert.equal(path.dirname(root),path.resolve(os.tmpdir()));assert.ok(path.basename(root).startsWith('hdev-setup-test-'));fs.rmSync(root,{recursive:true,force:true});});
+  const origin=`http://127.0.0.1:${server.address().port}`;
+  const bootstrap=await(await fetch(origin+'/api/bootstrap')).json();assert.equal(bootstrap.blogConfigured,false);
+  const post=async route=>fetch(origin+route,{method:'POST',headers:{'X-App-Token':bootstrap.token,'Content-Type':'application/json'},body:'{}'});
+  assert.equal((await post('/api/categories')).status,409);
+  const job=await(await post('/api/jobs')).json();
+  assert.equal((await post(`/api/jobs/${job.id}/publish`)).status,409);
+  assert.deepEqual(await(await fetch(origin+'/api/blogs')).json(),[]);
+});
+
+test('category API locks reads, preserves selection on regeneration, rejects other blogs, and retains the default choice', async t => {
+  const category={blogUrl:'https://example.tistory.com',id:'11',path:['Language','Java']};
+  const items=[{blogUrl:category.blogUrl,id:'0',path:['카테고리 없음']},category];
+  let release, shouldWait=true;
+  const gate=new Promise(resolve=>{release=resolve;});
+  const {request,id,job,root}=await fixture(t,async input=>{
+    const manifest=JSON.parse(fs.readFileSync(path.join(input.directory,'manifest.json')));
+    return {draft:{...draftFor(manifest.images[0].name),category:{...category,id:'99'}},analysis:'',review:'',sensitiveImages:[]};
+  },null,{categoryReader:async ({blogUrl})=>{assert.equal(blogUrl,category.blogUrl);if(shouldWait)await gate;return items;}});
+  assert.equal((await request('/api/categories')).data.canRead,true);
+  assert.equal((await request('/api/categories','POST',undefined,{'X-App-Token':'bad'})).status,403);
+  const pending=request('/api/categories','POST');
+  for(let i=0;i<50;i++){if((await request('/api/categories')).data.busy)break;await new Promise(r=>setTimeout(r,10));}
+  try {
+    assert.equal((await request('/api/categories','POST')).status,409);
+    assert.equal((await request(`/api/jobs/${id}/generate`,'POST')).status,409);
+    assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{})).status,409);
+  } finally {shouldWait=false;release();}
+  assert.deepEqual((await pending).data.items,items);
+  const route=`/api/jobs/${id}/draft`,draft={...draftFor(job.images[0].name),category};
+  assert.equal((await request(route,'PUT',{draft,review:''})).status,200);
+  const saved=(await request(`/api/jobs/${id}`)).data.draft;
+  assert.deepEqual(saved.category,category);
+  assert.equal((await request(route,'PUT',{draft:{...draft,category:{...category,blogUrl:'https://other.tistory.com'}},review:''})).status,400);
+  assert.deepEqual((await request(`/api/jobs/${id}`)).data.draft,saved);
+  await request(`/api/jobs/${id}/generate`,'POST');assert.deepEqual((await settled(request,id)).draft.category,category);
+  delete draft.category;await request(route,'PUT',{draft,review:''});
+  await request(`/api/jobs/${id}/generate`,'POST');assert.deepEqual((await settled(request,id)).draft.category,items[0]);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'library/categories.json'))).items,items);
+});
+
+test('references persist, enter frozen AI input, show partial failures and survive failed regeneration', async t => {
+  let shouldFail = false, received;
+  const {request,id,root,job} = await fixture(t, async input => {
+    received = input;
+    if (shouldFail) throw new Error('연결 실패');
+    const manifest = JSON.parse(fs.readFileSync(path.join(input.directory,'manifest.json')));
+    return {draft:draftFor(manifest.images[0].name),analysis:'분석',review:'검토',sensitiveImages:[]};
+  }, null, {fetchReference: async url => {
+    if (url.includes('blocked')) throw new Error('403');
+    return {url,text:`<article>${'서버가 읽은 공개 문서의 내용입니다. '.repeat(10)}</article>`};
+  }});
+  const route = `/api/jobs/${id}`, body = {title:'테스트',notes:'작업 메모',order:job.images.map(i=>i.name)};
+  const references = [{url:'https://example.com/docs',content:''},{url:'https://example.notion.site/private',content:'직접 입력한 참고자료'},{url:'https://example.com/blocked',content:''}];
+  assert.equal((await request(route,'PUT',{...body,references})).status,200);
+  assert.deepEqual((await request(route)).data.references,references);
+  assert.equal((await request(route,'PUT',{...body,notes:'덮어쓰면 안 됨',references:[{url:'http://localhost'}]})).status,400);
+  assert.equal((await request(route)).data.notes,body.notes);
+  await request(route,'PUT',body); // Old clients do not erase saved references.
+  assert.deepEqual((await request(route)).data.references,references);
+  await request(`${route}/generate`,'POST');
+  const done = await settled(request,id);
+  assert.equal(done.generation.phase,'done');
+  assert.deepEqual(received.references.map(r=>r.status),['read','provided','unavailable']);
+  assert.match(received.references[0].text,/서버가 읽은/);
+  assert.equal(received.references[1].text,'직접 입력한 참고자료');
+  assert.equal(done.referenceReports[2].status,'unavailable');
+  assert.equal(done.referenceReports[0].text,undefined);
+  assert.match(done.review,/참고자료 확인 기록/);
+  const originalDirectory = received.directory;
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(originalDirectory,'manifest.json'))).references,references);
+  const evidence = fs.readFileSync(path.join(originalDirectory,'references-read.json'),'utf8');
+  shouldFail = true;
+  await request(`${route}/generate`,'POST');
+  assert.equal((await settled(request,id)).generation.phase,'error');
+  assert.equal(fs.readFileSync(path.join(originalDirectory,'references-read.json'),'utf8'),evidence);
+  const changedReferences = [{url:'https://example.com/new',content:'새 자료'}];
+  const changed = (await request(route,'PUT',{...body,references:changedReferences})).data;
+  assert.equal(changed.changed,true); assert.deepEqual(changed.referenceReports,[]);
+  await request(`${route}/generate`,'POST');
+  const failed = await settled(request,id);
+  assert.equal(failed.generation.phase,'error'); assert.deepEqual(failed.draft,done.draft);
+  assert.notEqual(received.directory,originalDirectory);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(originalDirectory,'references.json'))),references);
+  shouldFail = false;
+  await request(`${route}/generate`,'POST');
+  const regenerated = await settled(request,id);
+  assert.equal(regenerated.changed,false); assert.equal(regenerated.referenceReports[0].status,'provided');
+});
+
+test('checking references works without AI, persists readable evidence and locks input during reads',async t=>{
+  let release, generated=false;
+  const gate=new Promise(resolve=>{release=resolve;});
+  const {request,id,job,root}=await fixture(t,async()=>{generated=true;throw new Error('Should not generate');},null,{notionReader:async()=>{
+    await gate;return {title:'공개 노션 가이드',text:'첫 부분과 마지막 부분까지 읽은 자료입니다.',truncated:false,reader:'notion',blockCount:12};
+  }});
+  const route=`/api/jobs/${id}`,body={title:'자료 읽기',notes:'',order:job.images.map(i=>i.name),references:[{url:'https://example.notion.site/11111111222233334444555555555555'}]};
+  await request(route,'PUT',body);
+  const started=await request(`${route}/references/read`,'POST');
+  assert.equal(started.status,202);assert.equal(started.data.referenceRead.phase,'reading');
+  try{assert.equal((await request(route,'PUT',{...body,references:[]})).status,409);}finally{release();}
+  let done;for(let i=0;i<50;i++){done=(await request(route)).data;if(done.referenceRead.phase!=='reading')break;await new Promise(r=>setTimeout(r,10));}
+  assert.equal(done.referenceRead.phase,'done');assert.equal(generated,false);assert.equal(done.draft,null);
+  assert.equal(done.referenceReports[0].title,'공개 노션 가이드');assert.match(done.referenceReports[0].excerpt,/마지막/);
+  assert.ok(fs.existsSync(path.join(root,'inbox',id,'references-check.json')));
+  await request(route,'PUT',{...body,references:[]});assert.deepEqual((await request(route)).data.referenceReports,[]);
+});
+
+test('reference reads lock materials until generation finishes', async t => {
+  let release;
+  const waiting = new Promise(resolve => { release=resolve; });
+  const {request,id,job} = await fixture(t,async input=> {
+    const manifest=JSON.parse(fs.readFileSync(path.join(input.directory,'manifest.json')));
+    return {draft:draftFor(manifest.images[0].name),analysis:'',review:'',sensitiveImages:[]};
+  },null,{fetchReference:async url=> {await waiting;return {url,text:'<article>'+ '본문 자료입니다. '.repeat(20)+'</article>'};}});
+  const route=`/api/jobs/${id}`, body={title:'잠금',notes:'',order:job.images.map(i=>i.name),references:[{url:'https://example.com'}]};
+  await request(route,'PUT',body);
+  await request(`${route}/generate`,'POST');
+  try { assert.equal((await request(route,'PUT',{...body,references:[]})).status,409); }
+  finally { release(); }
+  assert.equal((await settled(request,id)).generation.phase,'done');
+});
+async function fixture(t, generator = async()=>{throw new Error('테스트 생성 실패');}, publishAdapter = null, options = {}) {
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'tistory-app-test-'));
+  fs.writeFileSync(path.join(root,'tistory.config.json'),JSON.stringify({blogUrl:'https://example.tistory.com',inbox:'inbox',output:'drafts',styleSamples:'style',styleProfile:'style.md'}));
+  fs.writeFileSync(path.join(root,'style.md'),'테스트 문체');
+  const server=createApp({root,generator,checkGenerator:async()=>true,publishAdapter,...options});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const url=`http://127.0.0.1:${server.address().port}`;
+  const bootstrap=await (await fetch(`${url}/api/bootstrap`)).json();
+  async function request(route,method='GET',body,headers={}) {
+    const isBuffer=Buffer.isBuffer(body);
+    const response=await fetch(url+route,{method,headers:{'X-App-Token':bootstrap.token,...(body&&!isBuffer?{'Content-Type':'application/json'}:{}),...headers},body:body?isBuffer?body:JSON.stringify(body):undefined});
+    return { status:response.status, data:await response.json() };
+  }
+  t.after(async()=>{await new Promise(resolve=>server.close(resolve));const resolved=path.resolve(root);assert.equal(path.dirname(resolved),path.resolve(os.tmpdir()));assert.ok(path.basename(resolved).startsWith('tistory-app-test-'));fs.rmSync(resolved,{recursive:true,force:true});});
+  const created=await request('/api/jobs','POST',{title:'테스트'});const id=created.data.id;
+  const uploaded=await request(`/api/jobs/${id}/images?name=test.png`,'POST',PNG);
+  assert.equal(uploaded.status,201);
+  return {root,request,id,job:uploaded.data,bootstrap};
+}
+async function settled(request,id){
+  for(let i=0;i<40;i++){const result=await request(`/api/jobs/${id}`);if(result.data.generation.phase!=='generating')return result.data;await new Promise(r=>setTimeout(r,10));}
+  throw new Error('generation did not settle');
+}
+
+test('photos, notes and edited drafts persist across requests; snapshot order matches UI',async t=>{
+  const {request,id,root,job}=await fixture(t);
+  const second=await request(`/api/jobs/${id}/images?name=other.png`,'POST',PNG);
+  const names=second.data.images.map(i=>i.name).reverse();
+  assert.equal((await request(`/api/jobs/${id}`,'PUT',{title:'새 제목',notes:'사용자 메모',order:names})).status,200);
+  const saved=await request(`/api/jobs/${id}/draft`,'PUT',{draft:draftFor(job.images[0].name),review:'검토 질문'});
+  assert.equal(saved.status,200);assert.equal(saved.data.notes,'사용자 메모');
+  const reloaded=(await request(`/api/jobs/${id}`)).data;
+  assert.equal(reloaded.draft.title,'검증용 개발 기록');assert.equal(reloaded.review,'검토 질문');
+  const meta=JSON.parse(fs.readFileSync(path.join(root,'inbox',id,'app.json')));
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(meta.directory,'manifest.json'))).images.map(i=>i.name),names);
+  await request(`/api/jobs/${id}`,'PUT',{title:'새 제목',notes:'사용자 메모',order:[names[0]]});
+  assert.equal((await request(`/api/jobs/${id}`)).data.images.length,1);
+  assert.ok(fs.existsSync(path.join(root,'inbox',id,'images',names[1])));
+});
+
+test('user GitHub cards persist, reject invalid replacements, survive regeneration, and stay removed',async t=>{
+  const card={icon:'📚',categoryLabel:'Java Collection',topic:'Stack & Deque',sourceLabel:'GitHub',url:'https://github.com/example/java',linkText:'코드 보기',description:'스택과 덱의 차이'};
+  const {request,id,job}=await fixture(t,async()=>({draft:{...draftFor(job.images[0].name),githubCard:{...card,topic:'AI가 임의로 쓴 카드'}},analysis:'분석',review:'검토',sensitiveImages:[]}));
+  const draft={...draftFor(job.images[0].name),githubCard:card};
+  const first=await request(`/api/jobs/${id}/draft`,'PUT',{draft,review:''});assert.equal(first.status,200);
+  assert.deepEqual((await request(`/api/jobs/${id}`)).data.draft.githubCard,card);
+  const invalid=await request(`/api/jobs/${id}/draft`,'PUT',{draft:{...draft,githubCard:{...card,url:'javascript:alert(1)'}},review:''});
+  assert.equal(invalid.status,400);assert.deepEqual((await request(`/api/jobs/${id}`)).data.draft.githubCard,card);
+  await request(`/api/jobs/${id}/generate`,'POST');const generated=await settled(request,id);
+  assert.equal(generated.generation.phase,'done');assert.deepEqual(generated.draft.githubCard,card);
+  const removed=await request(`/api/jobs/${id}/draft`,'PUT',{draft:draftFor(job.images[0].name),review:''});
+  assert.equal(removed.status,200);assert.notEqual(removed.data.draftDigest,first.data.draftDigest);
+  await request(`/api/jobs/${id}/generate`,'POST');assert.equal((await settled(request,id)).draft.githubCard,undefined);
+});
+
+test('invalid files and cross-origin mutations are rejected',async t=>{
+  const {request,id,job}=await fixture(t);
+  assert.equal((await request(`/api/jobs/${id}/images`,'POST',Buffer.from('<script>test</script>'))).status,415);
+  assert.equal((await request(`/api/jobs/${id}/images`,'POST',PNG,{'X-App-Token':'wrong'})).status,403);
+  assert.equal((await request(`/api/jobs/${id}/images`,'POST',PNG,{Origin:'https://attacker.example'})).status,403);
+  assert.equal((await request(`/api/jobs/${id}`)).data.images.length,job.images.length);
+});
+
+test('invalid draft updates preserve the previously saved content',async t=>{
+  const {request,id,job}=await fixture(t);
+  const draft=draftFor(job.images[0].name);
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft,review:''});
+  const invalid=await request(`/api/jobs/${id}/draft`,'PUT',{draft:{...draft,blocks:[{type:'image',file:'../../outside.png',alt:'x'}]},review:''});
+  assert.ok(invalid.status>=400);
+  assert.deepEqual((await request(`/api/jobs/${id}`)).data.draft,draft);
+});
+
+test('failed regeneration keeps the existing draft even after materials change',async t=>{
+  const {request,id,job}=await fixture(t);
+  const draft=draftFor(job.images[0].name);
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft,review:'기존 검토'});
+  await request(`/api/jobs/${id}`,'PUT',{title:'변경된 주제',notes:'새로운 메모',order:job.images.map(i=>i.name)});
+  assert.equal((await request(`/api/jobs/${id}/generate`,'POST')).status,202);
+  const result=await settled(request,id);
+  assert.equal(result.generation.phase,'error');assert.deepEqual(result.draft,draft);assert.equal(result.review,'기존 검토');
+});
+
+test('generation persists analysis and excludes flagged images; transfer stays pending',async t=>{
+  const {request,id,job,root}=await fixture(t,async({directory})=>{
+    const m=JSON.parse(fs.readFileSync(path.join(directory,'manifest.json')));
+    return {draft:draftFor(m.images[0].name),analysis:'이미지 관찰',review:'사진 확인',sensitiveImages:[m.images[0].name]};
+  });
+  await request(`/api/jobs/${id}/generate`,'POST');const result=await settled(request,id);
+  assert.equal(result.generation.phase,'done');assert.equal(result.analysis,'이미지 관찰');
+  assert.equal(result.draft.blocks.filter(b=>b.type==='image').length,0);
+  assert.ok(result.review.includes('test.png'));
+  const transfer=await request(`/api/jobs/${id}/transfer`,'POST');assert.equal(transfer.status,200);assert.match(transfer.data.message,/아직 티스토리에 저장되지는/);
+  const meta=JSON.parse(fs.readFileSync(path.join(root,'inbox',id,'app.json')));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(meta.directory,'transfer-request.json'))).status,'pending');
+  assert.equal(fs.existsSync(path.join(meta.directory,'tistory-receipt.json')),false);
+});
+
+test('a running generation blocks overlapping writes and duplicate generation',async t=>{
+  let finish;const gate=new Promise(resolve=>{finish=resolve;});
+  const {request,id,job}=await fixture(t,async()=>{await gate;return {draft:draftFor(job.images[0].name),analysis:'분석',review:'',sensitiveImages:[]};});
+  await request(`/api/jobs/${id}/generate`,'POST');
+  assert.equal((await request(`/api/jobs/${id}/generate`,'POST')).status,409);
+  assert.equal((await request(`/api/jobs/${id}`,'PUT',{title:'겹친 변경',notes:'',order:[]})).status,409);
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE')).status,409);
+  assert.equal((await request(`/api/jobs/${id}/covers?name=cover.png`,'POST',PNG)).status,409);
+  finish();assert.equal((await settled(request,id)).generation.phase,'done');
+});
+
+test('publication API locks writes, deduplicates clicks, and returns the verified link',async t=>{
+  let release, count=0;const gate=new Promise(resolve=>{release=resolve;});
+  const {request,id,job,bootstrap}=await fixture(t,undefined,async({draft,beforeSubmit})=>{
+    count++;await gate;beforeSubmit();return {url:'https://example.tistory.com/42',title:draft.title,verifiedAt:new Date().toISOString(),evidence:{public:true,body:true,images:true}};
+  });
+  assert.equal(bootstrap.canPublish,true);
+  const saved=await request(`/api/jobs/${id}/draft`,'PUT',{draft:draftFor(job.images[0].name),review:''});
+  assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{draftDigest:'old'})).status,409);
+  assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{draftDigest:saved.data.draftDigest})).status,202);
+  assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{draftDigest:saved.data.draftDigest})).status,200);
+  assert.equal((await request(`/api/jobs/${id}/draft`,'PUT',{draft:draftFor(job.images[0].name),review:'changed'})).status,409);
+  assert.equal((await request(`/api/jobs/${id}/generate`,'POST')).status,409);
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE')).status,409);
+  release();
+  let result;
+  for(let i=0;i<50;i++){result=(await request(`/api/jobs/${id}`)).data;if(result.publication.phase==='published')break;await new Promise(resolve=>setTimeout(resolve,10));}
+  assert.equal(result.publication.url,'https://example.tistory.com/42');assert.equal(count,1);
+  assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{draftDigest:'anything'})).data.publication.phase,'published');
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE')).status,200);
+  assert.equal(count,1); // Local deletion never invokes the remote adapter.
+});
+
+test('deleting a job removes all original photos, snapshots and history while preserving other jobs', async t => {
+  const {request,id,root,job} = await fixture(t);
+  const neighbor = (await request('/api/jobs','POST',{title:'남겨둘 글'})).data;
+  const original = job.images[0].name;
+  await request(`/api/jobs/${id}/covers?name=cover.png`,'POST',PNG);
+  const second = (await request(`/api/jobs/${id}/images?name=extra.png`,'POST',PNG)).data.images[1].name;
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft:draftFor(original),review:'첫 초안'});
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft:draftFor(original),review:'편집 이력'});
+  const meta = JSON.parse(fs.readFileSync(path.join(root,'inbox',id,'app.json')));
+  const older = path.join(root,'drafts',id,'older-input','publication','old-attempt');
+  fs.mkdirSync(older,{recursive:true}); fs.writeFileSync(path.join(older,'photo.png'),PNG);
+  await request(`/api/jobs/${id}`,'PUT',{title:'삭제할 글',notes:'',order:[original]});
+  assert.ok(fs.existsSync(path.join(root,'inbox',id,'images',second)));
+  assert.ok(fs.readdirSync(path.join(meta.directory,'history')).length);
+  const files = directory => fs.readdirSync(directory,{withFileTypes:true}).reduce((n,entry) => n + (entry.isDirectory() ? files(path.join(directory,entry.name)) : fs.statSync(path.join(directory,entry.name)).size),0);
+  const expected = files(path.join(root,'inbox',id)) + files(path.join(root,'drafts',id));
+  assert.equal((await request('/api/jobs')).data.find(j=>j.id===id).storageBytes,expected);
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE',undefined,{'X-App-Token':'wrong'})).status,403);
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE',undefined,{Origin:'https://attacker.example'})).status,403);
+  const deleted = await request(`/api/jobs/${id}`,'DELETE');
+  assert.equal(deleted.status,200); assert.equal(deleted.data.deletedBytes,expected);
+  assert.equal(fs.existsSync(path.join(root,'inbox',id)),false);
+  assert.equal(fs.existsSync(path.join(root,'drafts',id)),false);
+  assert.equal((await request(`/api/jobs/${id}`)).status,404);
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE')).status,404);
+  assert.deepEqual((await request('/api/jobs')).data.map(j=>j.id),[neighbor.id]);
+  assert.equal(fs.readFileSync(path.join(root,'style.md'),'utf8'),'테스트 문체');
+});
+
+test('cover uploads and selection preserve body edits and original input, survive reload, and publish an immutable copy', async t => {
+  let sent;
+  const {request,id,root,job} = await fixture(t,undefined,async request=> {
+    sent = request;
+    assert.ok(fs.readFileSync(path.join(request.directory,'images',request.draft.cover)).equals(PNG));
+    request.beforeSubmit();
+    return {url:'https://example.tistory.com/42',title:request.draft.title,verifiedAt:new Date().toISOString(),evidence:{public:true,body:true,images:true,cover:true}};
+  });
+  const draft = draftFor(job.images[0].name);
+  const before = (await request(`/api/jobs/${id}/draft`,'PUT',{draft,review:'사용자 검토'})).data;
+  assert.equal((await request(`/api/jobs/${id}/covers`,'POST',Buffer.from('not an image'))).status,415);
+  const uploaded = (await request(`/api/jobs/${id}/covers?name=표지.png`,'POST',PNG)).data;
+  const cover = uploaded.coverImages[0].name;
+  assert.equal(uploaded.images.length,1); assert.equal(uploaded.changed,false);
+  assert.equal(uploaded.coverImages[0].label,'표지.png');
+  const selected = (await request(`/api/jobs/${id}/draft`,'PUT',{draft:{...draft,cover},review:'사용자 검토'})).data;
+  assert.equal(selected.draft.cover,cover); assert.deepEqual(selected.draft.blocks,draft.blocks);
+  assert.notEqual(selected.draftDigest,before.draftDigest); assert.equal(selected.review,'사용자 검토');
+  const reloaded = (await request(`/api/jobs/${id}`)).data;
+  assert.equal(reloaded.draft.cover,cover); assert.equal(reloaded.changed,false);
+  const directory = JSON.parse(fs.readFileSync(path.join(root,'inbox',id,'app.json'))).directory;
+  const manifest = JSON.parse(fs.readFileSync(path.join(directory,'manifest.json')));
+  assert.equal(manifest.images.length,1); assert.equal(manifest.coverImages[0].name,cover);
+  assert.deepEqual(buildPreview(reloaded.draft,manifest).usedImages,[cover,job.images[0].name]);
+  assert.ok(fs.readFileSync(path.join(directory,'preview.html'),'utf8').indexOf(cover) < fs.readFileSync(path.join(directory,'preview.html'),'utf8').indexOf(job.images[0].name));
+  const originalManifest = fs.readFileSync(path.join(directory,'manifest.json'),'utf8');
+  assert.equal((await request(`/api/jobs/${id}/draft`,'PUT',{draft:{...draft,cover:'../../outside.png'},review:''})).status,400);
+  assert.equal(fs.readFileSync(path.join(directory,'manifest.json'),'utf8'),originalManifest);
+  assert.equal((await request(`/api/jobs/${id}`)).data.draft.cover,cover);
+  assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{draftDigest:before.draftDigest})).status,409);
+  assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{draftDigest:selected.draftDigest})).status,202);
+  for(let i=0;i<50 && !sent;i++) await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(sent.draft.cover,cover);
+  for(let i=0;i<50 && (await request(`/api/jobs/${id}`)).data.publication.phase!=='published';i++) await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal((await request(`/api/jobs/${id}`)).data.publication.phase,'published');
+  const reset = (await request(`/api/jobs/${id}/draft`,'PUT',{draft,review:''})).data;
+  assert.equal(reset.draft.cover,undefined); assert.deepEqual(reset.draft.blocks,draft.blocks);
+  assert.deepEqual(buildPreview(reset.draft,JSON.parse(fs.readFileSync(path.join(directory,'manifest.json')))).usedImages,[job.images[0].name]);
+});
+
+test('an existing body photo becomes the first image without duplication or loss of its caption', async t => {
+  const {request,id,root,job} = await fixture(t);
+  const second = (await request(`/api/jobs/${id}/images?name=second.png`,'POST',PNG)).data.images[1].name;
+  const draft = {...draftFor(job.images[0].name),cover:second};
+  draft.blocks.push({type:'paragraph',text:'중간 설명'},{type:'image',file:second,alt:'결과',caption:'사용자 사진 설명'});
+  const saved = await request(`/api/jobs/${id}/draft`,'PUT',{draft,review:''});
+  assert.equal(saved.status,200);
+  const ordered = articleBlocks(saved.data.draft);
+  assert.deepEqual(ordered[0],draft.blocks[3]);
+  assert.equal(ordered.filter(b=>b.type==='image').length,2);
+  assert.deepEqual(saved.data.draft.blocks,draft.blocks);
+  const directory = JSON.parse(fs.readFileSync(path.join(root,'inbox',id,'app.json'))).directory;
+  const manifest = JSON.parse(fs.readFileSync(path.join(directory,'manifest.json')));
+  assert.equal(manifest.coverImages,undefined);
+  assert.deepEqual(buildPreview(draft,manifest).usedImages,[second,job.images[0].name]);
+  fs.appendFileSync(path.join(directory,'images',second),'changed');
+  assert.equal((await request(`/api/jobs/${id}/publish`,'POST',{draftDigest:saved.data.draftDigest})).status,409);
+});
+
+test('regeneration keeps the user cover across changed material snapshots and drops a newly flagged cover', async t => {
+  let flagged = [];
+  const {request,id,root,job} = await fixture(t,async()=>({draft:draftFor(job.images[0].name),analysis:'분석',review:'',sensitiveImages:flagged}));
+  const uploaded = (await request(`/api/jobs/${id}/covers?name=cover.png`,'POST',PNG)).data;
+  const cover = uploaded.coverImages[0].name;
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft:{...draftFor(job.images[0].name),cover},review:''});
+  const before = JSON.parse(fs.readFileSync(path.join(root,'inbox',id,'app.json'))).directory;
+  await request(`/api/jobs/${id}`,'PUT',{title:'변경',notes:'새 메모',order:job.images.map(i=>i.name)});
+  await request(`/api/jobs/${id}/generate`,'POST');
+  const result = await settled(request,id);
+  assert.equal(result.generation.phase,'done'); assert.equal(result.draft.cover,cover);
+  const after = JSON.parse(fs.readFileSync(path.join(root,'inbox',id,'app.json'))).directory;
+  assert.notEqual(after,before); assert.ok(fs.existsSync(path.join(after,'images',cover)));
+  flagged = [cover];
+  await request(`/api/jobs/${id}/generate`,'POST');
+  const blocked = await settled(request,id);
+  assert.equal(blocked.draft.cover,undefined); assert.match(blocked.review,/cover.png/);
+});
+
+test('deletion ignores saved draft paths and rejects junctions before removing any data', async t => {
+  const {request,id,root,job} = await fixture(t);
+  await request(`/api/jobs/${id}/draft`,'PUT',{draft:draftFor(job.images[0].name),review:''});
+  const external = path.join(root,'keep'); fs.mkdirSync(external); fs.writeFileSync(path.join(external,'keep.txt'),'보존');
+  const link = path.join(root,'drafts',id,'external-link'); fs.symlinkSync(external,link,'junction');
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE')).status,409);
+  assert.ok(fs.existsSync(path.join(root,'inbox',id,'images',job.images[0].name)));
+  assert.equal(fs.readFileSync(path.join(external,'keep.txt'),'utf8'),'보존');
+  fs.unlinkSync(link);
+  const metaFile = path.join(root,'inbox',id,'app.json');
+  fs.writeFileSync(metaFile,JSON.stringify({title:'깨진 경로',directory:external}));
+  assert.equal((await request(`/api/jobs/${id}`,'DELETE')).status,200);
+  assert.equal(fs.readFileSync(path.join(external,'keep.txt'),'utf8'),'보존');
+  assert.equal((await request('/api/jobs/%2e%2e%5cskip','DELETE')).status,400);
+});
