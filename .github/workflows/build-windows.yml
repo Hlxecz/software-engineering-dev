@@ -27,6 +27,7 @@ jobs:
       - run: npm run release:check
       - run: npm test
       - run: node tools/windows-upgrade/check.mjs
+      - run: node tools/assignment1/check-current.mjs
       - run: npm run test:desktop
       - run: npm run test:categories
       - run: npm run test:writing

@@ -31,7 +31,8 @@ for(const file of [path.join(root,'README.md'),path.join(root,'java-backend/READ
   assert.ok(fs.existsSync(path.resolve(path.dirname(file),relative)),`${path.relative(root,file)}: ${url}`);links++;
  }
 }
-const result={version:JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version,javaDeclarations:declarations.length,classes:17,interfaces:2,diagrams:manifest.diagrams.length,archivedFilesUnchanged:archive.files.length,localLinks:links,actualAppRun:false};
+const intentional=archive.files.filter(item=>item.originalSha256);
+const result={version:JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version,javaDeclarations:declarations.length,classes:17,interfaces:2,diagrams:manifest.diagrams.length,archivedFilesUnchanged:archive.files.length-intentional.length,intentionalCoverChanges:intentional.length,localLinks:links,actualAppRun:false};
 fs.mkdirSync(path.join(root,'.runtime/windows-upgrade-20261030'),{recursive:true});
 fs.writeFileSync(path.join(root,'.runtime/windows-upgrade-20261030/document-check.json'),JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));

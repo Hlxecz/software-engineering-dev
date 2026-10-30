@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-30T03:46:20.257Z",
+  "sections": 6,
+  "diagrams": 9,
+  "groups": 9,
+  "leafPackages": 28,
+  "baselineHours": 200,
+  "reserveHours": 40,
+  "plannedHours": 240,
+  "weeks": 12,
+  "submission": {
+    "name": "장형준",
+    "studentId": "22413564",
+    "major": "컴퓨터공학전공",
+    "date": "2026년 10월 7일"
+  },
+  "htmlSha256": "07229d3e9a4280a70f5ee5b0daab45475fc50ea502b30ac7ac1687e6b2773f19",
+  "sourceSha256": "7d4893272470202f3bf7eeb8ed21dc507999f7bca188fe202f0e26a294bbdf4d",
+  "pdfSha256": "69714c28248f7cb9b75ff6cd404406bbf585770d2941669523b1a92505c5f620",
+  "pdfPages": 19,
+  "appExecuted": false
+}

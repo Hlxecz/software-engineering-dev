@@ -891,7 +891,9 @@
     },
     {
       "path": "docs/assignment/과제1-프로젝트관리/통합보고서.html",
-      "sha256": "4d09e9bf18c361af75a0b936a5ba20de0d3421189f7fcf909fe962c035e44fdf"
+      "sha256": "b14380f5e6c7e10e6f6a4d634024124b4e66898308b4849ef3e012ec019db79a",
+      "originalSha256": "4d09e9bf18c361af75a0b936a5ba20de0d3421189f7fcf909fe962c035e44fdf",
+      "reason": "사용자 요청: 제출 HTML 표지의 계획 기준 행 삭제. 원본은 별도 로컬 백업에 보존"
     },
     {
       "path": "docs/assignment/과제1-프로젝트관리/통합보고서.pdf",

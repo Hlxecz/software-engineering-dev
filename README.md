@@ -6,7 +6,9 @@
 
 사진·메모로 글을 만들거나 직접 작성하고, 필요한 문단을 AI로 다듬어 티스토리에 발행하는 앱입니다. 기존 게시글을 가져와 같은 주소에서 수정할 수도 있습니다.
 
-현재 기능 브랜치는 원본 **v0.11.1 Windows**를 반영한 `0.11.1-java.1`입니다. 화면·AI·티스토리 연결은 JavaScript/Electron을 활용하고, 글·사진·초안·지침과 새 기능의 보관 자료를 **Java**가 관리합니다.
+주요 사용자는 **블로그 작성자·포트폴리오 준비 학생·초안 구성이 어려운 사람**입니다.
+
+현재 메인 버전은 원본 **v0.11.1 Windows**를 반영한 `0.11.1-java.1`입니다. 화면·AI·티스토리 연결은 JavaScript/Electron을 활용하고, 글·사진·초안·지침과 새 기능의 보관 자료를 **Java**가 관리합니다.
 
 | 먼저 볼 자료 | 내용 |
 |---|---|
@@ -14,7 +16,7 @@
 | [Windows 실행](docs/assignment/RUN.md) | 설치·자료 위치·빌드·오류 해결 |
 | [전체 사용법](docs/USAGE.md) | 새 화면과 모든 기능 사용 순서 |
 | [코드 따라 읽기](docs/assignment/CODE_GUIDE.md) | 화면에서 실제 Java 저장까지 |
-| [과제 1 제출 PDF](docs/assignment/과제1-프로젝트관리/통합보고서.pdf) | 2026-10-07 제출본, v0.7.4 당시 26쪽·그림 15개 |
+| [과제 1 최신 HTML](docs/assignment/과제1-프로젝트관리-최신/통합보고서.html) · [제출 PDF](docs/assignment/과제1-프로젝트관리-최신/통합보고서.pdf) | 대상 사용자·범위·문맥·제약·규모·WBS, 단계별 표·그림 중심 |
 
 ## 폴더 구조
 
@@ -93,7 +95,7 @@ Java는 별도 웹 서버가 아닙니다. Node가 요청마다 Java를 실행�
 **Windows x64 · Node.js 22 이상 · JDK 17 이상**이 필요합니다. 처음 의존성과 Gson을 설치할 때 인터넷을 사용합니다.
 
 ```powershell
-git clone --branch feature/windows-v0.11.1-java-solid https://github.com/Hlxecz/software-engineering-dev.git
+git clone https://github.com/Hlxecz/software-engineering-dev.git
 cd software-engineering-dev
 npm.cmd ci
 npm.cmd run setup

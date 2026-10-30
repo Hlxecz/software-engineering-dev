@@ -9,17 +9,18 @@ import { sha256, writeHtml } from './html.mjs';
 
 const tool = path.dirname(fileURLToPath(import.meta.url));
 const project = path.resolve(tool, '../..');
-const directory = path.join(project, 'docs/assignment/과제1-프로젝트관리');
+const directory = path.resolve(project, process.argv[2] || 'docs/assignment/과제1-프로젝트관리');
+if(!directory.startsWith(path.join(project,'docs/assignment')+path.sep))throw new Error('과제 문서 폴더만 생성할 수 있습니다.');
 const report=JSON.parse(fs.readFileSync(path.join(directory,'계획자료/보고서구성.json'),'utf8'));
 const modules = path.join(project, 'tools/diagrams/node_modules');
-const session = path.join(tool, '.render-session');
+const session = path.join(project, '.runtime', 'report-render-'+path.basename(directory));
 fs.mkdirSync(session, {recursive:true});
 fs.mkdirSync(path.join(directory, '그림'), {recursive:true});
 app.setPath('userData', session);
 app.disableHardwareAcceleration();
 const page = `<!doctype html><html lang="ko"><meta charset="utf-8"><style>html,body{margin:0;background:white;overflow:hidden}#stage{padding:12px;display:inline-block}svg{display:block;max-width:none!important;font-family:'Malgun Gothic',sans-serif}</style><div id="stage"></div><script type="module">
 import mermaid from '/modules/mermaid/dist/mermaid.esm.min.mjs';
-mermaid.initialize({startOnLoad:false,securityLevel:'strict',markdownAutoWrap:false,theme:'base',fontFamily:'Malgun Gothic, sans-serif',themeVariables:{fontFamily:'Malgun Gothic, sans-serif',fontSize:'17px',primaryColor:'#edf3fb',primaryTextColor:'#142c46',primaryBorderColor:'#5175a0',lineColor:'#50667d',secondaryColor:'#edf7f1',tertiaryColor:'#fbf4e7'},flowchart:{htmlLabels:false,useMaxWidth:false,curve:'linear',nodeSpacing:18,rankSpacing:26,wrappingWidth:260}});
+mermaid.initialize({startOnLoad:false,securityLevel:'strict',markdownAutoWrap:false,theme:'base',fontFamily:'Malgun Gothic, sans-serif',themeVariables:{fontFamily:'Malgun Gothic, sans-serif',fontSize:'${report.printFriendly?'20px':'17px'}',primaryColor:'#edf3fb',primaryTextColor:'#142c46',primaryBorderColor:'#5175a0',lineColor:'#50667d',secondaryColor:'#edf7f1',tertiaryColor:'#fbf4e7'},flowchart:{htmlLabels:false,useMaxWidth:false,curve:'linear',nodeSpacing:18,rankSpacing:26,wrappingWidth:260},sequence:{useMaxWidth:false,wrap:true},class:{useMaxWidth:false}});
 window.drawSvg=async(markup)=>{const stage=document.querySelector('#stage');stage.innerHTML=markup;const svg=stage.querySelector('svg');const box=svg.viewBox.baseVal;const width=Math.ceil(box.width),height=Math.ceil(box.height);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.style.maxWidth='none';await document.fonts.ready;const overflowText=[...svg.querySelectorAll('text')].map(t=>{const b=t.getBBox();return {text:t.textContent,x:b.x,y:b.y,width:b.width,height:b.height};}).filter(b=>b.x<box.x-1||b.y<box.y-1||b.x+b.width>box.x+box.width+1||b.y+b.height>box.y+box.height+1);return {svg:new XMLSerializer().serializeToString(svg),width:width+24,height:height+24,text:svg.textContent,overflowText};};window.draw=async(id,code)=>window.drawSvg((await mermaid.render(id,code)).svg);window.ready=true;
 </script></html>`;
 let win;

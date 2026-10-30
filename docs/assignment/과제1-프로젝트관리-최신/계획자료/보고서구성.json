@@ -1,0 +1,116 @@
+{
+  "title": "과제 1 · 블로그 글쓰기 지원 앱 프로젝트 관리",
+  "version": "0.11.1-java.1",
+  "printFriendly": true,
+  "baselineCommit": "20a607cf8fbbb8b71680b6bae9f01f4977952039",
+  "revisedAt": "2026-10-30",
+  "submission": {
+    "name": "장형준",
+    "studentId": "22413564",
+    "major": "컴퓨터공학전공",
+    "date": "2026년 10월 7일"
+  },
+  "sections": [
+    {
+      "id": "step-1",
+      "file": "01-대상제어기.md",
+      "title": "1. 대상 제어기 선택",
+      "question": "무엇을 제어하는 앱인가?"
+    },
+    {
+      "id": "step-2",
+      "file": "02-목표와범위.md",
+      "title": "2. 목표와 범위",
+      "question": "어디까지 만들고 무엇으로 완료를 판단하는가?"
+    },
+    {
+      "id": "step-3",
+      "file": "03-시스템관계와이해관계자.md",
+      "title": "3. 문맥과 이해관계자",
+      "question": "앱 밖의 누구와 무엇을 주고받는가?"
+    },
+    {
+      "id": "step-4",
+      "file": "04-제약과위험.md",
+      "title": "4. 제약과 위험",
+      "question": "어떤 조건을 지키고 실패에 어떻게 대응하는가?"
+    },
+    {
+      "id": "step-5",
+      "file": "05-규모와시간산정.md",
+      "title": "5. 규모와 시간 산정",
+      "question": "현재 규모와 계획 시간은 어떻게 구분하는가?"
+    },
+    {
+      "id": "step-6",
+      "file": "06-업무분해와일정.md",
+      "title": "6. 주요 업무와 WBS",
+      "question": "업무를 어떻게 나누고 어떤 순서와 시간으로 진행하는가?"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "control-concept",
+      "file": "그림원본/01-제어개념.mmd",
+      "kind": "mermaid",
+      "basis": "현재 기능과 구조",
+      "image": "그림/01-제어개념"
+    },
+    {
+      "id": "internal-controller",
+      "file": "그림원본/02-내부책임과통신.mmd",
+      "kind": "mermaid",
+      "basis": "현재 기능과 구조",
+      "image": "그림/02-내부책임과통신"
+    },
+    {
+      "id": "context",
+      "file": "그림원본/03-시스템관계.mmd",
+      "kind": "mermaid",
+      "basis": "현재 기능과 구조",
+      "image": "그림/03-시스템관계"
+    },
+    {
+      "id": "classes-java",
+      "file": "그림원본/05-1-Java클래스관계.svg",
+      "kind": "svg",
+      "basis": "현재 기능과 구조",
+      "image": "그림/05-1-Java클래스관계"
+    },
+    {
+      "id": "wbs-foundation",
+      "file": "그림원본/06-1-업무분해-분석기반저장.mmd",
+      "kind": "mermaid",
+      "basis": "구축 계획 가정",
+      "image": "그림/06-1-업무분해-분석기반저장"
+    },
+    {
+      "id": "wbs-integration",
+      "file": "그림원본/06-2-업무분해-지침연결보존.mmd",
+      "kind": "mermaid",
+      "basis": "구축 계획 가정",
+      "image": "그림/06-2-업무분해-지침연결보존"
+    },
+    {
+      "id": "wbs-delivery",
+      "file": "그림원본/06-3-업무분해-검증인계관리.mmd",
+      "kind": "mermaid",
+      "basis": "구축 계획 가정",
+      "image": "그림/06-3-업무분해-검증인계관리"
+    },
+    {
+      "id": "dependencies",
+      "file": "그림원본/06-4-업무선행관계.mmd",
+      "kind": "mermaid",
+      "basis": "구축 계획 가정",
+      "image": "그림/06-4-업무선행관계"
+    },
+    {
+      "id": "schedule",
+      "file": "그림원본/06-5-시간비례일정.svg",
+      "kind": "svg",
+      "basis": "구축 계획 가정",
+      "image": "그림/06-5-시간비례일정"
+    }
+  ]
+}
