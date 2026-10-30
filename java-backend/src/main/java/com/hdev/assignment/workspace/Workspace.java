@@ -60,6 +60,12 @@ public final class Workspace {
         require(candidate.startsWith(base) && !candidate.equals(base), "초안 경로가 올바르지 않습니다.");
         return safe(candidate);
     }
+    public Path snapshotDirectory(String id, String directory) throws IOException {
+        Path snapshot=draftDirectory(id,directory);
+        require(snapshot.getParent().equals(safe(configured("output").resolve(id(id)))),"입력 사본 경로가 올바르지 않습니다.",409);
+        require(str(object(regular(snapshot.resolve("manifest.json"))),"id").equals(id),"입력 사본 글 ID가 다릅니다.",409);
+        return snapshot;
+    }
     // 옛 앱 자료를 복사하면 app.json에 예전 절대경로가 남을 수 있다.
     // 같은 글 ID·입력 해시를 가진 현재 복사본을 찾아 열며 예전 원본 위치에 접근하지 않는다.
     public Path savedDirectory(String id, JsonObject meta) throws IOException {

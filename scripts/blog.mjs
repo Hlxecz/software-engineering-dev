@@ -5,16 +5,18 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { articleBlocks, manifestImage, normalizeCategory } from '../web/draft-model.js';
 import { articleAttributes, articleCss, renderArticleContent } from '../web/article-renderer.js';
+import { readReferences } from './references.mjs';
 
+const PROJECT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const IMAGE = /\.(png|jpe?g|webp)$/i;
 const sha = data => createHash('sha256').update(data).digest('hex');
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
 const writeJson = (file, value) => fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 const check = (condition, message) => { if (!condition) throw new Error(message); };
 
-// Public CLI contracts stay unchanged; all source/snapshot persistence is Java.
-// CLI의 new/ready/list/prepare도 화면과 같은 Java 저장 규칙을 사용한다.
+// 저장과 입력 사본은 화면과 CLI 모두 같은 Java 구현을 사용한다.
 export const newJob = (root, id) => javaStore(root, 'job.create', { id });
-export const readyJob = (root, id) => javaStore(root, 'job.ready', { id });
+export const readyJob = (root, id, options = {}) => javaStore(root, 'job.ready', { id, value: options });
 export const listJobs = root => javaStore(root, 'job.list');
 export const prepareJob = (root, id) => javaStore(root, 'job.prepare', { id });
 
@@ -52,8 +54,6 @@ export function buildPreview(draft, manifest, { includeToc = true } = {}) {
   return { html, body, usedImages: [...usedImages] };
 }
 
-// Java가 보관한 draft.json을 공통 JS 렌더러로 HTML로 바꾼다.
-// preview.html은 파생된 미리보기이고 편집 원본은 draft.json이다.
 export function renderDraft(directory) {
   const dest = path.resolve(directory), draft = readJson(path.join(dest, 'draft.json'));
   const manifest = readJson(path.join(dest, 'manifest.json'));

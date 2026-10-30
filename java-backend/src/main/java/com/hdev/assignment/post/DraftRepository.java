@@ -10,7 +10,7 @@ import static com.hdev.assignment.common.AppException.require;
 import static com.hdev.assignment.common.JsonFiles.*;
 
 /** 화면에서 검증한 초안을 이력과 함께 저장한다. 표지 파일도 Java가 복사한다. */
-public final class DraftRepository {
+public final class DraftRepository implements DraftStore {
     private final Workspace workspace;
     private final JobRepository jobs;
     public DraftRepository(Workspace workspace, JobRepository jobs) { this.workspace = workspace; this.jobs = jobs; }

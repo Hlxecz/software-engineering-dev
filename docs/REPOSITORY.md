@@ -1,5 +1,7 @@
 # 과제 저장소 구성과 출처
 
+**현재 기능 브랜치:** 0.11.1-java.1 Windows. [최신 반영 범위](assignment/windows-v0.11.1/FEATURES.md)와 [설계](assignment/windows-v0.11.1/ARCHITECTURE.md)를 읽습니다. 아래는 2026-10-14 최초 업로드 당시 기록입니다.
+
 이 저장소는 `H.Dev Studio Java 0.7.4-java.1`의 코드와 과제 문서를 별도 폴더로 복사한 제출용 저장소입니다. 2026년 10월 14일 새 Git 이력으로 시작하며 원본 저장소에는 연결하지 않습니다.
 
 ## 재사용한 부분

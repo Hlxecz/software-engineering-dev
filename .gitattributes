@@ -13,3 +13,6 @@
 
 # Report checks store byte hashes; preserve the verified document bundle on clone.
 docs/assignment/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Keep the bundled third-party license verbatim.
+web/fonts/OFL.txt -whitespace

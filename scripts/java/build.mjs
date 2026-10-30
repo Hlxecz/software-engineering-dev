@@ -20,18 +20,25 @@ if (!fs.existsSync(lib)) {
 }
 if (digest(fs.readFileSync(lib)) !== expected) throw new Error('Gson 파일이 변경되었습니다. java-backend/lib 파일을 확인하세요.');
 const sources = fs.readdirSync(path.join(root, 'src/main/java'), { recursive: true }).filter(file => file.endsWith('.java')).sort().map(file => path.join(root, 'src/main/java', file));
-const declarations = sources.reduce((count, file) => count + [...fs.readFileSync(file, 'utf8').matchAll(/\b(?:class|interface|record|enum)\s+\w+/g)].length, 0);
+const declarations = sources.reduce((count, file) => {
+  const code = fs.readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"/g, '');
+  return count + [...code.matchAll(/\b(?:class|interface|record|enum)\s+\w+/g)].length;
+}, 0);
 if (declarations > 30) throw new Error(`직접 작성한 Java 선언이 ${declarations}개입니다. 과제 제한은 30개입니다.`);
 const build = path.join(root, 'build'), jar = path.join(build, 'blog-storage.jar'), stamp = path.join(build, 'source.sha256');
 const fingerprint = digest(Buffer.concat([Buffer.from(expected), ...sources.map(file => fs.readFileSync(file))]));
 if (fs.existsSync(jar) && fs.existsSync(stamp) && fs.readFileSync(stamp, 'utf8') === fingerprint) {
   console.log(`Java 빌드 최신 상태 (${declarations}개 클래스)`);
 } else {
-  fs.mkdirSync(path.join(build, 'classes'), { recursive: true });
+  const classes = path.resolve(build, 'classes');
+  if (path.dirname(classes) !== path.resolve(root, 'build')) throw new Error('Java 빌드 경로가 올바르지 않습니다.');
+  fs.rmSync(classes, {recursive:true, force:true});
+  fs.mkdirSync(classes, { recursive: true });
   for (const [tool, args] of [
     ['javac', ['-encoding', 'UTF-8', '--release', '17', '-cp', lib, '-d', path.join(build, 'classes'), ...sources]],
     ['jar', ['--create', '--file', jar, '-C', path.join(build, 'classes'), '.']]
   ]) {
+    if (tool === 'jar') fs.writeFileSync(path.join(classes, 'backend.properties'), `declarations=${declarations}\n`);
     const result = spawnSync(javaTool(tool), args, { encoding: 'utf8', windowsHide: true });
     if (result.error || result.status !== 0) throw new Error(`JDK 17 이상이 필요합니다. ${tool}: ${result.error?.message || result.stderr || result.stdout}`);
   }

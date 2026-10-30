@@ -51,10 +51,13 @@ public final class JsonFiles {
     // 학습 6: 먼저 임시 파일을 완성하고 목적 파일로 교체한다. 쓰는 도중 원래 파일을 비우지 않는다.
     // 가능하면 원자적 교체를 사용한다. 여러 파일 전체를 한꺼번에 되돌리는 DB 트랜잭션은 아니다.
     public static void writeText(Path file, String value) throws IOException {
+        writeBytes(file,value.getBytes(StandardCharsets.UTF_8));
+    }
+    public static void writeBytes(Path file, byte[] value) throws IOException {
         Files.createDirectories(file.getParent());
         Path temp = file.resolveSibling(file.getFileName() + "." + UUID.randomUUID() + ".tmp");
         try {
-            Files.writeString(temp, value, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
+            Files.write(temp, value, StandardOpenOption.CREATE_NEW);
             try { Files.move(temp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING); }
             catch (AtomicMoveNotSupportedException e) { Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING); }
         } finally { Files.deleteIfExists(temp); }

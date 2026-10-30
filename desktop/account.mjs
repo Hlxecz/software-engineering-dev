@@ -1,6 +1,6 @@
 // Read only the account's own blog list, observed at /member/blog on 2026-09-18.
-// 티스토리 로그인 창에서 계정 소유 블로그 목록을 읽는다. 사진·초안 저장 모듈과 별개다.
 export const accountUrl = 'https://www.tistory.com/member/blog';
+export const tistorySessionPartition = 'persist:hdev-tistory-java';
 
 export function accountBlogsCommand() {
   if (!['www.tistory.com', 'tistory.com'].includes(location.hostname) || location.pathname !== '/member/blog') return null;

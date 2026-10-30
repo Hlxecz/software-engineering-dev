@@ -1,0 +1,59 @@
+classDiagram
+direction TB
+class Main
+class RequestDispatcher
+class Workspace
+class JsonFiles
+class AppException
+class JsonRecordStore {
+ <<interface>>
+ +read(file, fallback)
+ +write(file, value)
+}
+class FileJsonRecordStore
+class FileTransaction
+class JobRepository
+class SnapshotService
+class DraftStore {
+ <<interface>>
+ +save(id, value)
+}
+class DraftRepository
+class StorageService
+class ExistingPostService
+class RefinementService
+class UpdateService
+class CategoryService
+class PromptService
+class StyleService
+Main ..> RequestDispatcher
+Main ..> Workspace
+RequestDispatcher ..> JobRepository
+RequestDispatcher ..> SnapshotService
+RequestDispatcher ..> DraftRepository
+RequestDispatcher ..> StorageService
+RequestDispatcher ..> ExistingPostService
+RequestDispatcher ..> RefinementService
+RequestDispatcher ..> UpdateService
+RequestDispatcher ..> CategoryService
+RequestDispatcher ..> PromptService
+RequestDispatcher ..> StyleService
+RequestDispatcher ..> FileJsonRecordStore
+DraftStore <|.. DraftRepository
+JsonRecordStore <|.. FileJsonRecordStore
+RefinementService --> DraftStore
+RefinementService --> JsonRecordStore
+RefinementService ..> FileTransaction
+ExistingPostService --> JsonRecordStore
+ExistingPostService ..> DraftStore
+ExistingPostService ..> FileTransaction
+UpdateService --> JsonRecordStore
+UpdateService --> ExistingPostService
+UpdateService ..> FileTransaction
+StorageService --> ExistingPostService
+DraftRepository --> JobRepository
+SnapshotService --> JobRepository
+FileJsonRecordStore --> Workspace
+FileJsonRecordStore ..> JsonFiles
+Workspace ..> AppException
+Workspace ..> JsonFiles

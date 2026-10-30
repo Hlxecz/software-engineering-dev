@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { setup } from '../scripts/setup.mjs';
-import { checksums, releaseInfo } from '../scripts/release.mjs';
+import { buildPlan, checksums, releaseInfo } from '../scripts/release.mjs';
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hdev-tooling-test-'));
@@ -36,7 +36,7 @@ test('fresh setup creates required local files and preserves subsequent user edi
 test('release checks reject inconsistent versions and undocumented releases', t => {
   const root = fixture(t);
   assert.deepEqual(releaseInfo(root), {
-    version: '1.2.3', directory: path.join(root, 'dist', '1.2.3'), filename: 'HDev-Studio-1.2.3-win-x64.exe'
+    version: '1.2.3', directory: path.join(root, 'dist', '1.2.3', 'windows'), filename: 'HDev-Studio-1.2.3-win-x64.exe'
   });
   for (const lock of [
     { version: '1.2.4', packages: { '': { version: '1.2.3' } } },
@@ -65,4 +65,18 @@ test('checksum metadata matches bytes and does not change the existing artifact'
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(info.directory, 'release.json'))), {
     version: info.version, filename: info.filename, bytes: bytes.length, sha256: expected
   });
+});
+
+test('Windows-only build plan retains the Java resources and cannot accidentally build another platform', t => {
+  const root = fixture(t);
+  const plan = buildPlan('build', { platform:'win32', root });
+  assert.deepEqual(plan.args,['--config','windows/electron-builder.cjs','--win','portable','--x64','--publish','never']);
+  assert.equal(plan.info.directory,path.join(root,'dist','1.2.3','windows'));
+  assert.throws(()=>buildPlan('build',{platform:'darwin',root}),/Windows/);
+  assert.throws(()=>buildPlan('build-mac',{platform:'win32',root}),/Windows/);
+  assert.throws(()=>releaseInfo(root,{platform:'darwin'}),/Windows/);
+  const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url)));
+  assert.ok(pkg.build.extraResources.some(item=>item.from==='java-backend/build/blog-storage.jar'));
+  assert.ok(pkg.build.extraResources.some(item=>item.from==='java-backend/lib/gson-2.13.2.jar'));
+  assert.ok(pkg.build.files.includes('docs/AGENT-REFERENCE.md'));
 });

@@ -15,14 +15,14 @@ public final class SnapshotService {
     public SnapshotService(Workspace workspace, JobRepository jobs) { this.workspace = workspace; this.jobs = jobs; }
     // 현재 순서의 사진 해시·크기, 메모, 참고자료를 모아 하나의 입력 해시(digest)를 만든다.
     // 여기서 해시를 계산하는 대상은 입력 자료이며 완성된 초안의 본문과는 다르다.
-    private JsonObject input(String id) throws IOException {
+    private JsonObject input(String id, boolean allowEmptyImages) throws IOException {
         Path job = workspace.existingJob(id); JsonArray images = new JsonArray();
         JsonArray names = jobs.imageNames(id);
         if (!exists(workspace.safe(job.resolve("order.json")))) {
             List<String> sorted = new ArrayList<>(); names.forEach(n -> sorted.add(n.getAsString()));
             sorted.sort(SnapshotService::naturalCompare); names = new JsonArray(); for (String n : sorted) names.add(n);
         }
-        require(!names.isEmpty(), "images 폴더에 PNG, JPEG 또는 WebP 캡처를 넣으세요: " + job);
+        require(allowEmptyImages || !names.isEmpty(), "images 폴더에 PNG, JPEG 또는 WebP 캡처를 넣으세요: " + job);
         Set<String> seen = new HashSet<>();
         for (JsonElement value : names) {
             require(textValue(value) && seen.add(value.getAsString()), "사진 순서 목록이 올바르지 않습니다.");
@@ -54,15 +54,18 @@ public final class SnapshotService {
         int c = Integer.compare(a.length() - i, b.length() - j); return c != 0 ? c : a.compareTo(b);
     }
     // 현재 입력의 지문을 ready.json에 적어 수집 완료 상태를 표시한다. 아직 초안을 만들지는 않는다.
-    public JsonObject ready(String id) throws IOException {
-        JsonObject input = input(id), ready = obj("digest", str(input, "digest"), "readyAt", now());
+    public JsonObject ready(String id) throws IOException { return ready(id,false); }
+    public JsonObject ready(String id, boolean allowEmptyImages) throws IOException {
+        JsonObject input = input(id,allowEmptyImages), ready = obj("digest", str(input, "digest"), "readyAt", now());
+        if (array(input,"images").isEmpty()) ready.addProperty("textOnly",true);
         write(workspace.safe(workspace.job(id).resolve("ready.json")), ready); return merge(obj("id", id), ready);
     }
     // ready 이후 자료가 바뀌지 않았는지 확인하고 drafts/글ID/입력해시에 입력 사본을 만든다.
     // 같은 입력 폴더가 있으면 사본이 온전한지 검사한 뒤 재사용한다. 재사용 여부는 reused로 알린다.
     public JsonObject prepare(String id) throws IOException {
-        JsonObject input = input(id); Path job = workspace.job(id), marker = workspace.safe(job.resolve("ready.json"));
+        Path job = workspace.job(id), marker = workspace.safe(job.resolve("ready.json"));
         require(exists(marker), "먼저 ready 명령으로 캡처 수집 완료를 표시하세요.");
+        JsonObject input = input(id,Boolean.parseBoolean(str(object(marker),"textOnly")));
         require(str(object(marker), "digest").equals(str(input, "digest")), "준비 완료 이후 사진/메모가 바뀌었습니다. ready를 다시 실행하세요.");
         Path dest = workspace.safe(workspace.configured("output").resolve(id).resolve(str(input, "digest")));
         Path manifestFile = workspace.safe(dest.resolve("manifest.json"));
@@ -87,9 +90,10 @@ public final class SnapshotService {
         }
         writeText(workspace.safe(dest.resolve("notes.md")), str(input, "notes"));
         if (!array(input, "references").isEmpty()) write(workspace.safe(dest.resolve("references.json")), input.get("references"));
-        require(str(input(id), "digest").equals(str(input, "digest")), "준비 중 원본이 바뀌었습니다. ready를 다시 실행하세요.");
+        require(str(input(id,Boolean.parseBoolean(str(object(marker),"textOnly"))), "digest").equals(str(input, "digest")), "준비 중 원본이 바뀌었습니다. ready를 다시 실행하세요.");
         JsonObject manifest = obj("id", id, "inputDigest", str(input, "digest"), "preparedAt", now(), "blogUrl", str(workspace.config(), "blogUrl"),
             "images", input.get("images"), "styleSamples", workspace.configured("styleSamples").toString(), "styleProfile", workspace.configured("styleProfile").toString());
+        if (array(input,"images").isEmpty()) manifest.addProperty("textOnly",true);
         if (!array(input, "references").isEmpty()) manifest.add("references", input.get("references"));
         writeText(workspace.safe(dest.resolve("task.md")), "AGENTS.md와 docs/WRITING.md를 읽고 실제 사진과 notes.md를 바탕으로 초안을 작성하세요.\n작업 폴더: " + dest + "\n블로그: " + str(workspace.config(), "blogUrl") + "\nanalysis.md, draft.json, review.md 작성 후 node scripts/blog.mjs render 명령으로 검토하세요. 확인되지 않은 경험을 만들지 마세요.\n");
         write(manifestFile, manifest); return obj("directory", dest.toString(), "reused", false);
@@ -102,7 +106,7 @@ public final class SnapshotService {
             try {
                 Path marker = workspace.safe(workspace.job(id).resolve("ready.json"));
                 if (!exists(marker)) { result.add(obj("id", id, "status", "collecting")); continue; }
-                JsonObject input = input(id);
+                JsonObject input = input(id,Boolean.parseBoolean(str(object(marker),"textOnly")));
                 if (!str(object(marker), "digest").equals(str(input, "digest"))) { result.add(obj("id", id, "status", "changed", "hint", "ready를 다시 실행하세요.")); continue; }
                 Path dest = workspace.safe(workspace.configured("output").resolve(id).resolve(str(input, "digest")));
                 String status = "ready";
