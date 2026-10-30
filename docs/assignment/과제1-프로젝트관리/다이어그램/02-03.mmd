@@ -1,0 +1,25 @@
+classDiagram
+direction TB
+class RefinementService {
+ +apply(id, value)
+ +undo(id, value)
+}
+class DraftStore {
+ <<interface>>
+ +save(id, value)
+}
+class DraftRepository
+class JsonRecordStore {
+ <<interface>>
+ +read(file, fallback)
+ +write(file, value)
+}
+class FileJsonRecordStore
+class FileTransaction {
+ +commit()
+}
+DraftStore <|.. DraftRepository
+JsonRecordStore <|.. FileJsonRecordStore
+RefinementService --> DraftStore : 초안 보관
+RefinementService --> JsonRecordStore : 지침·undo 기록
+RefinementService ..> FileTransaction : 저장 실패 복원

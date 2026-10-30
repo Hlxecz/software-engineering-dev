@@ -1,0 +1,17 @@
+sequenceDiagram
+ actor U as 작성자
+ participant N as 앱·작업 조정
+ participant J as Java 자료 관리
+ participant A as AI 연결
+ U->>N: 자료·지침으로 초안 요청
+ N->>J: 입력 사본 보관
+ J-->>N: 보관 결과
+ N->>A: 작성 자료·지침 전달
+ A-->>N: 초안 결과
+ N->>J: 초안·분석·지침 보관
+ J-->>N: 저장 결과
+ N-->>U: 편집 가능한 초안 표시
+ U->>N: 검토·편집 후 보관
+ N->>J: 편집 초안 저장
+ J-->>N: 저장 결과
+ N-->>U: 보관 상태 안내

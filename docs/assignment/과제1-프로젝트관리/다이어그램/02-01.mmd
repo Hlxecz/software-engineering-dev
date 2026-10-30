@@ -1,0 +1,11 @@
+flowchart TB
+ subgraph SYS[H.Dev Studio Java]
+ UI[작성 화면·편집·미리보기] --> N[Node 작업 조정]
+ N --> A[AI 연결]
+ N --> E[Electron 로그인·발행 연결]
+ N --> B[Java 프로세스 연결]
+ B --> J[Java 클래스 기반 자료 관리]
+ J --> F[(로컬 글·사진·초안·이력)]
+ end
+ A --> AI[AI CLI·서비스]
+ E --> T[티스토리]

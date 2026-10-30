@@ -581,7 +581,7 @@
 - 실제 `0.4.0` EXE를 실행하고 포함된 앱 소스·로고·공용 설정을 확인했다.
 - 소스 수정 때마다 빌드하지 않고 개발 확인 후 배포 시 빌드하는 기준을 문서화했다.
 
-관련 문서: [소스 이력](HISTORY.md), [복원 근거](recovered-sources.json), [배포 절차](RELEASING.md), [변경 내역](../CHANGELOG.md), [배포 검사](../scripts/release.mjs), [초기 설정](../scripts/setup.mjs).
+관련 문서: [배포 절차](RELEASING.md), [변경 내역](../CHANGELOG.md), [배포 검사](../scripts/release.mjs), [초기 설정](../scripts/setup.mjs).
 
 <a id="test-tools"></a>
 
@@ -695,8 +695,6 @@
 ### 저장소 문서
 
 - [CHANGELOG.md](../CHANGELOG.md): 버전별 기능·수정·검증 기록.
-- [HISTORY.md](HISTORY.md): 복원 버전과 복원 한계.
-- [recovered-sources.json](recovered-sources.json): 원본 배포본·파일 무결성 근거.
 - [RELEASING.md](RELEASING.md): 버전, EXE, 공개 소스, 정리 절차.
 - [USAGE.md](USAGE.md): 앱 사용법과 참고자료·말투 사용 흐름.
 - [WRITING.md](WRITING.md): 사진 분석·사실 확인·말투·초안 작성 규칙.

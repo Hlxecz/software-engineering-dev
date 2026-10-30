@@ -7,7 +7,7 @@
 - JDK 17 이상 (`java -version`, `javac -version`, `jar --version`)
 - 처음 npm 패키지와 Gson을 다운로드할 인터넷 연결
 
-이 PC에서는 Node 22와 JAVA_HOME의 JDK 17.0.12를 사용했습니다. 결과 클래스는 `--release 17`로 컴파일합니다.
+Java는 `--release 17`로 컴파일합니다. JDK 설치 후 JAVA_HOME과 실행 경로를 확인하세요.
 Java IDE에서는 `java-backend/pom.xml`을 열면 됩니다. 앱 실행·빌드는 npm으로 연결했으므로 Maven 설치는 필수가 아닙니다.
 
 ## 가장 쉬운 실행
@@ -113,6 +113,6 @@ EXE 위치는 `dist/0.11.1-java.1/windows/HDev-Studio-0.11.1-java.1-win-x64.exe`
 
 ## 새 기능과 검사 세션
 
-사진 없는 수동 글은 입력 사본에 textOnly로 표시합니다. AI 생성에는 사진이 필요합니다. [AI 다듬기·원문 가져오기·기존 글 수정](windows-v0.11.1/FEATURES.md)은 최신 사용법에 있습니다.
+사진 없는 수동 글은 입력 사본에 textOnly로 표시합니다. AI 생성에는 사진이 필요합니다. [AI 다듬기·원문 가져오기·기존 글 수정](../USAGE.md)은 최신 사용법에 있습니다.
 
 자료 폴더 재정의는 HDEV_JAVA_DATA_DIR 하나입니다. 별도 검증에서만 HDEV_JAVA_USER_DATA_DIR로 Electron의 쿠키·창 설정용 세션 경로를 격리할 수 있으며, 이 값은 글의 workspace 위치를 바꾸지 않습니다. 기본 영구 로그인 세션도 원본 앱과 분리합니다.

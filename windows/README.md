@@ -27,6 +27,6 @@ Windows에서 `windows/electron-builder.cjs` 설정을 읽고 `dist/<버전>/win
 
 사진·초안·말투·로그인은 `%APPDATA%/H.Dev Studio Java/workspace`와 `persist:hdev-tistory-java` 전용 세션에 보관하며 EXE와 Git에 포함하지 않습니다. 개발 자료는 `H.Dev Studio Java Dev/workspace`로 분리합니다.
 
-[사용 안내](../docs/USAGE.md) · [배포 관리](../docs/RELEASING.md) · [Java 과제 구조](../docs/assignment/ARCHITECTURE.md)
+[사용 안내](../docs/USAGE.md) · [배포 관리](../docs/RELEASING.md) · [Java 과제 구조](../docs/assignment/과제1-프로젝트관리/02-프로젝트범위정의.md)
 
 자료 위치는 `HDEV_JAVA_DATA_DIR`, 웹 포트는 `HDEV_JAVA_PORT`로만 재정의합니다. 원본 앱의 자료·포트 환경 변수는 사용하지 않습니다. EXE에는 Java 저장 JAR·Gson·라이선스를 포함하며, 실행할 PC에는 Java 17 이상이 필요합니다.

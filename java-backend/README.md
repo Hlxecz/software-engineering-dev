@@ -11,7 +11,7 @@
 | prompt | 기본·분류별 지침과 기본값 갱신 |
 | common | JSON·오류·저장 계약·파일 구현·요청 실패 복원 |
 
-[전체 클래스 표와 관계도](../docs/assignment/windows-v0.11.1/ARCHITECTURE.md) · [쉬운 코드 해설](../docs/assignment/CODE_GUIDE.md)
+[전체 클래스 표와 관계도](../docs/assignment/과제1-프로젝트관리/02-프로젝트범위정의.md) · [쉬운 코드 해설](../docs/assignment/CODE_GUIDE.md)
 
 프로젝트 최상위에서 실행합니다.
 
