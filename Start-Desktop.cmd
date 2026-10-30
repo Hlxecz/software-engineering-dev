@@ -11,9 +11,7 @@ if not exist node_modules\electron\cli.js (
   call npm.cmd ci
   if errorlevel 1 goto failed
 )
-call npm.cmd run setup
-if errorlevel 1 goto failed
-call npm.cmd run desktop
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0windows\Start-App.ps1"
 if errorlevel 1 goto failed
 exit /b 0
 :failed

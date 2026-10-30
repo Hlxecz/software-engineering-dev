@@ -1,8 +1,8 @@
 {
   "name": "hdev-studio-java-assignment",
   "private": true,
-  "version": "0.7.4-java.1",
-  "description": "H.Dev Studio Java 과제 프로젝트 (v0.7.4 기반)",
+  "version": "0.11.1-java.1",
+  "description": "H.Dev Studio Java 과제 프로젝트 (v0.11.1 Windows 기반)",
   "author": "H.Dev",
   "main": "desktop/main.mjs",
   "type": "module",
@@ -35,7 +35,13 @@
     "prebuild:exe": "npm run java:build",
     "test:java": "npm run java:build && node --test test/java-integration.test.mjs",
     "pretest:setup": "npm run java:build",
-    "pretest:account": "npm run java:build"
+    "pretest:account": "npm run java:build",
+    "test:refine": "electron validation/electron-refine.mjs",
+    "test:existing": "electron validation/electron-existing-post.mjs && electron validation/electron-existing-section.mjs",
+    "test:lifecycle": "electron validation/electron-lifecycle.mjs",
+    "pretest:refine": "npm run java:build",
+    "pretest:existing": "npm run java:build",
+    "pretest:lifecycle": "npm run java:build"
   },
   "devDependencies": {
     "electron": "44.3.0",
@@ -58,7 +64,8 @@
       "config/**/*",
       "docs/WRITING.md",
       "AGENTS.md",
-      "package.json"
+      "package.json",
+      "docs/AGENT-REFERENCE.md"
     ],
     "asarUnpack": [
       "desktop/publish.mjs"

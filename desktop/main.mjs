@@ -1,5 +1,3 @@
-// Electron의 시작 파일(package.json의 main). 창·메뉴·로그인 창과 로컬 서버의 생명주기를 관리한다.
-// 실행 흐름: app.whenReady → 자료 폴더 준비 → createApp → 빈 포트 열기 → BrowserWindow.loadURL.
 import { app, BrowserWindow, Menu, dialog, shell } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,12 +5,14 @@ import { createApp } from '../scripts/server.mjs';
 import { initializeData } from './data.mjs';
 import { assignmentDataRoot } from '../scripts/workspace.mjs';
 import { randomUUID } from 'node:crypto';
-import { createTistoryAccountReader } from './account.mjs';
+import { createTistoryAccountReader, tistorySessionPartition } from './account.mjs';
 
 app.setName('H.Dev Studio Java');
-// Keep development windows and sessions independent from the installed EXE.
-app.setPath('userData', path.join(app.getPath('appData'), app.isPackaged ? 'H.Dev Studio Java' : 'H.Dev Studio Java Dev'));
-app.setAppUserModelId('com.hdev.studio.java.assignment');
+const isMac = process.platform === 'darwin';
+// Keep development windows and sessions independent from the installed app.
+// Session isolation for validation never changes the workspace selection below.
+app.setPath('userData', path.resolve(process.env.HDEV_JAVA_USER_DATA_DIR || path.join(app.getPath('appData'), app.isPackaged ? 'H.Dev Studio Java' : 'H.Dev Studio Java Dev')));
+if (process.platform === 'win32') app.setAppUserModelId('com.hdev.studio.java.assignment');
 let mainWindow, server, origin, dataRoot;
 const remoteWindows = new Set();
 function openBlogSettings(eventName = 'hdev:blog-settings') {
@@ -58,14 +58,14 @@ function protectNavigation(win, local = false) {
 function openTistory(url) {
   if (!tistoryUrl(url)) return;
   if (new URL(url).hostname === 'your-blog.tistory.com') { openBlogSettings(); return; }
-  // Separate in-memory browser session. No app preload or Node access is exposed to Tistory.
-  const win = new BrowserWindow({ width: 1220, height: 900, minWidth: 800, minHeight: 620, title: '티스토리 · H.Dev Studio',
+  // Electron keeps this isolated browser session across app restarts in userData.
+  const win = new BrowserWindow({ width: 1220, height: 900, minWidth: 800, minHeight: 620, title: '티스토리 · H.Dev Studio Java',
     icon: path.join(app.getAppPath(), 'desktop/assets/icon.png'),
-    webPreferences: { partition: 'tistory-session', sandbox: true, contextIsolation: true, nodeIntegration: false } });
+    webPreferences: { partition: tistorySessionPartition, sandbox: true, contextIsolation: true, nodeIntegration: false } });
   remoteWindows.add(win); win.on('closed', () => remoteWindows.delete(win));
   win.webContents.on('page-title-updated', event => { event.preventDefault(); win.setTitle(`${win.webContents.getTitle()} · 티스토리`); });
   protectNavigation(win);
-  win.setMenu(Menu.buildFromTemplate([
+  if (!isMac) win.setMenu(Menu.buildFromTemplate([
     { label: '티스토리', submenu: [
       { label: '뒤로', accelerator: 'Alt+Left', click: () => { if (win.webContents.navigationHistory.canGoBack()) win.webContents.navigationHistory.goBack(); } },
       { label: '새로고침', role: 'reload' }, { type: 'separator' },
@@ -94,6 +94,27 @@ async function openDataFolder() {
   }
 }
 
+async function createMainWindow() {
+  const bundle = app.getAppPath();
+  mainWindow = new BrowserWindow({ width: 1261, height: 735, minWidth: 880, minHeight: 680, show: false,
+    backgroundColor: '#000000',
+    ...(isMac ? { titleBarStyle: 'hiddenInset' } : process.platform === 'win32' ? {
+      titleBarStyle: 'hidden', titleBarOverlay: { color: '#00000000', symbolColor: '#808080', height: 40 }, autoHideMenuBar: true
+    } : {}),
+    title: app.isPackaged ? 'H.Dev Studio Java' : 'H.Dev Studio Java · 개발 모드', icon: path.join(bundle, 'desktop/assets/icon.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true } });
+  protectNavigation(mainWindow, true);
+  mainWindow.on('close', event => {
+    if (server.hasActiveGeneration()) {
+      event.preventDefault(); dialog.showMessageBox(mainWindow, { type: 'info', message: '카테고리·자료 읽기, 글 작성, 말투 분석 또는 발행이 진행 중입니다.', detail: '작업이 끝나면 앱을 닫을 수 있어요. 티스토리 로그인 화면이 열렸다면 먼저 로그인을 완료해 주세요.' });
+    }
+  });
+  mainWindow.on('closed', () => { mainWindow = null; });
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+  if (!app.isPackaged) mainWindow.webContents.on('page-title-updated', event => { event.preventDefault(); mainWindow.setTitle('H.Dev Studio Java · 개발 모드'); });
+  await mainWindow.loadURL(origin);
+}
+
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); } });
@@ -114,22 +135,25 @@ else {
       const { createTistoryCategoryReader } = await import(`./publish.mjs?categories=${randomUUID()}`);
       return createTistoryCategoryReader({ openWindow: openTistory })(request);
     };
-    server = createApp({ root: dataRoot, webRoot: path.join(bundle, 'web'), publishAdapter, categoryReader,
+    const updateAdapter = async request => {
+      const { createTistoryPostUpdater } = await import(`./publish.mjs?update=${randomUUID()}`);
+      return createTistoryPostUpdater({ openWindow: openTistory,
+        onDryRun: !app.isPackaged && process.env.HDEV_PUBLISH_DRY_RUN === '1' ? async result => {
+          fs.writeFileSync(path.join(dataRoot, 'update-dry-run.json'), JSON.stringify({ title: result.draft.title,
+            url: result.url, imageCount: Object.keys(result.uploaded).length, verifiedAt: new Date().toISOString(), submitted: false }, null, 2));
+        } : null })(request);
+    };
+    server = createApp({ root: dataRoot, webRoot: path.join(bundle, 'web'), publishAdapter, updateAdapter, categoryReader,
       accountReader: createTistoryAccountReader({ openWindow: openTistory }) });
-    await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+    await new Promise((resolve, reject) => { server.once('error', reject); server.listen(process.env.HDEV_JAVA_PORT ? Number(process.env.HDEV_JAVA_PORT) : 0, '127.0.0.1', resolve); });
     origin = `http://127.0.0.1:${server.address().port}`;
-    mainWindow = new BrowserWindow({ width: 1440, height: 980, minWidth: 880, minHeight: 680, show: false,
-      backgroundColor: '#ffffff', title: app.isPackaged ? 'H.Dev Studio' : 'H.Dev Studio Java · 개발 모드', icon: path.join(bundle, 'desktop/assets/icon.png'),
-      webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true } });
-    protectNavigation(mainWindow, true);
-    mainWindow.on('close', event => {
-      if (server.hasActiveGeneration()) {
-        event.preventDefault(); dialog.showMessageBox(mainWindow, { type: 'info', message: '카테고리·자료 읽기, 글 작성, 말투 분석 또는 발행이 진행 중입니다.', detail: '작업이 끝나면 앱을 닫을 수 있어요. 티스토리 로그인 화면이 열렸다면 먼저 로그인을 완료해 주세요.' });
-      }
-    });
-    mainWindow.on('closed', () => { mainWindow = null; });
     Menu.setApplicationMenu(Menu.buildFromTemplate([
+      ...(isMac ? [{ role: 'appMenu' }] : []),
       { label: '작업실', submenu: [
+        { label: '작업실 열기', click: () => {
+          if (mainWindow) { mainWindow.show(); mainWindow.focus(); }
+          else createMainWindow().catch(error => dialog.showErrorBox('작업실 열기 실패', error.message));
+        } },
         { label: '자료 폴더 열기', click: openDataFolder },
         { label: '내 블로그 연결', click: () => openBlogSettings() },
         { label: '티스토리 로그인', click: () => openBlogSettings('hdev:tistory-login') },
@@ -137,15 +161,26 @@ else {
       ] },
       { label: '편집', submenu: [{ role: 'undo', label: '실행 취소' }, { role: 'redo', label: '다시 실행' }, { type: 'separator' }, { role: 'cut', label: '잘라내기' }, { role: 'copy', label: '복사' }, { role: 'paste', label: '붙여넣기' }, { role: 'selectAll', label: '전체 선택' }] },
       { label: '보기', submenu: [{ role: 'reload', label: '새로고침' }, { role: 'resetZoom', label: '기본 크기' }, { role: 'zoomIn', label: '확대' }, { role: 'zoomOut', label: '축소' }] },
+      ...(isMac ? [{ label: '티스토리', submenu: [
+        { label: '뒤로', accelerator: 'Cmd+[', click: () => {
+          const win = BrowserWindow.getFocusedWindow();
+          if (remoteWindows.has(win) && win.webContents.navigationHistory.canGoBack()) win.webContents.navigationHistory.goBack();
+        } },
+        { label: '브라우저에서 이어서 열기', click: () => {
+          const win = BrowserWindow.getFocusedWindow(), target = win?.webContents.getURL();
+          if (remoteWindows.has(win) && tistoryUrl(target) && new URL(target).hostname.endsWith('tistory.com')) shell.openExternal(target);
+        } }
+      ] }, { role: 'windowMenu' }] : []),
       { label: '도움말', submenu: [{ label: 'AI 선택 / 연결 방법', click: () => {
         if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.executeJavaScript("window.dispatchEvent(new Event('hdev:ai-help'))").catch(() => {});
       } }] }
     ]));
-    mainWindow.once('ready-to-show', () => mainWindow.show());
-    if (!app.isPackaged) mainWindow.webContents.on('page-title-updated', event => { event.preventDefault(); mainWindow.setTitle('H.Dev Studio Java · 개발 모드'); });
-    await mainWindow.loadURL(origin);
+    await createMainWindow();
     fs.writeFileSync(path.join(app.getPath('userData'), 'runtime.json'), JSON.stringify({ pid: process.pid, origin, dataRoot, version: app.getVersion() }));
-  }).catch(error => { dialog.showErrorBox('H.Dev Studio 시작 실패', error.message); app.quit(); });
-  app.on('window-all-closed', () => app.quit());
+  }).catch(error => { dialog.showErrorBox('H.Dev Studio Java 시작 실패', error.message); app.quit(); });
+  app.on('activate', () => {
+    if (origin && !mainWindow) createMainWindow().catch(error => dialog.showErrorBox('작업실 열기 실패', error.message));
+  });
+  app.on('window-all-closed', () => { if (!isMac) app.quit(); });
   app.on('will-quit', () => { server?.closeAllConnections(); server?.close(); });
 }

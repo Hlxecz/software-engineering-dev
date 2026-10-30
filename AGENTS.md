@@ -2,11 +2,11 @@
 
 ## 범위와 구조
 
-- 기존 blog-automation v0.7.4 기반의 독립 Java 과제 프로젝트다.
+- 현재 기능 브랜치는 blog-automation v0.11.1 Windows 기반의 독립 Java 과제 프로젝트다.
 - 이 저장소의 원격은 Hlxecz/software-engineering-dev만 사용한다. 원본 저장소에 push하지 않는다.
 - 화면은 web/, Electron은 desktop/, 로컬 API·AI 연결은 scripts/에 있다.
 - Java는 java-backend/src/main/java/com/hdev/assignment/의 기능별 패키지에 둔다.
-- 직접 작성 Java 선언은 30개 이하이며 현재 11개 클래스다.
+- 직접 작성 Java 선언은 30개 이하이며 현재 클래스 17개·인터페이스 2개로 총 19개다. 수를 늘리기 위한 계층을 추가하지 않는다.
 - 구조·실행·코드 해설은 README.md와 docs/assignment/README.md에서 시작한다.
 
 ## 자료와 저장 규칙

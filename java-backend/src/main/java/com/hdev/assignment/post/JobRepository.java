@@ -73,13 +73,15 @@ public final class JobRepository {
             "notes", text(workspace.regular(job.resolve("notes.md"))), "names", imageNames(id),
             "references", readOptional(job, "references.json", new JsonArray()),
             "checked", readOptional(job, "references-check.json", JsonNull.INSTANCE));
-        for (String name : List.of("draft.json", "manifest.json", "writing-context.json", "references-read.json")) {
+        for (String name : List.of("draft.json", "manifest.json", "writing-context.json", "references-read.json", "refinement-undo.json", "refinement-context.json")) {
             result.add(name, saved == null ? JsonNull.INSTANCE : readOptional(saved, name, JsonNull.INSTANCE));
         }
         for (String name : List.of("notes.md", "review.md", "analysis.md")) {
             Path file = saved == null ? null : workspace.safe(saved.resolve(name));
             result.addProperty(name, file != null && exists(file) ? text(file) : "");
         }
+        result.add("existing-post.json", readOptional(job,"existing-post.json",JsonNull.INSTANCE));
+        result.add("post-update.json", readOptional(job,"post-update.json",obj("phase","idle")));
         return result;
     }
     private JsonElement readOptional(Path directory, String name, JsonElement fallback) throws IOException {

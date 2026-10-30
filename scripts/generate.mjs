@@ -53,8 +53,6 @@ references는 사용자가 지정한 참고자료입니다. status가 read 또�
 <references>${JSON.stringify(references)}</references>${categoryPrompt}`;
 }
 
-// Java는 AI를 호출하지 않는다. 이 함수가 입력 사본·지침을 준비해 선택한 AI CLI에 전달한다.
-// 반환된 초안은 server.mjs의 검증을 거쳐 Java로 저장된다.
 export async function generate({ root, directory, title, notes, style, references = [], writing, onProgress, provider = 'codex' }) {
   const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'manifest.json'), 'utf8'));
   const schemaFile = path.join(directory, 'response.schema.json');

@@ -37,6 +37,9 @@ test('sitemap expands RSS history, concurrent sync deduplicates, failed refresh 
 test('packaged assets stay separate from writable data and initialization preserves edits', async t => {
   const root = temp(t), bundle = path.resolve('.');
   initializeData(root, bundle);
+  const reference = 'docs/AGENT-REFERENCE.md';
+  assert.equal(fs.readFileSync(path.join(root, reference), 'utf8'), fs.readFileSync(path.join(bundle, reference), 'utf8'));
+  fs.writeFileSync(path.join(root, reference), '사용자가 추가한 작업 규칙');
   assert.equal(JSON.parse(fs.readFileSync(path.join(root,'tistory.config.json'))).blogUrl, 'https://your-blog.tistory.com');
   assert.equal(fs.readFileSync(path.join(root,'style/profile.md'),'utf8'), fs.readFileSync(path.join(bundle,'config/style.example.md'),'utf8'));
   const configFile = path.join(root,'tistory.config.json');
@@ -44,9 +47,11 @@ test('packaged assets stay separate from writable data and initialization preser
   fs.writeFileSync(configFile, JSON.stringify(localConfig));
   fs.writeFileSync(path.join(root,'style/profile.md'), '수정한 말투');
   initializeData(root,bundle); assert.equal(fs.readFileSync(path.join(root,'style/profile.md'),'utf8'),'수정한 말투');
+  assert.equal(fs.readFileSync(path.join(root, reference), 'utf8'), '사용자가 추가한 작업 규칙');
   assert.deepEqual(JSON.parse(fs.readFileSync(configFile)), localConfig);
   const files = JSON.parse(fs.readFileSync(path.join(bundle,'package.json'))).build.files;
   assert.ok(files.includes('config/**/*'));
+  assert.ok(files.includes(reference));
   for (const privateFile of ['tistory.config.json','style/profile.md','style/samples/source-notes.md','ai.settings.json']) assert.equal(files.includes(privateFile), false);
   assert.equal(fs.existsSync(path.join(root,'web')),false);
   const server = createApp({root,webRoot:path.join(bundle,'web'),checkGenerator:async()=>true});
@@ -57,4 +62,59 @@ test('packaged assets stay separate from writable data and initialization preser
   const add=await fetch(base+'/api/blogs',{method:'POST',headers:{'Content-Type':'application/json','X-App-Token':boot.token},body:JSON.stringify({url:'https://another.tistory.com'})});
   assert.equal(add.status,201); assert.equal((await add.json()).length,2);
   assert.equal((await fetch(base+'/api/blogs',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,403);
+});
+
+test('구버전 기본 지침과 초기 말투를 백업 후 갱신하고 사용자 자료를 보존한다', t => {
+  const bundle = path.resolve('.');
+  const oldTemplates = ['style-0.7.4.md', 'style-initial-20260915.md']
+    .map(name => fs.readFileSync(path.join(bundle, 'test/fixtures', name), 'utf8'));
+  const expected = fs.readFileSync(path.join(bundle, 'config/style.example.md'), 'utf8');
+  assert.ok(expected.length > 6000);
+  for (const previous of oldTemplates.flatMap(text => [text.replace(/\r\n/g, '\n'), text.replace(/\r?\n/g, '\r\n'), text.trim()])) {
+    const root = temp(t);
+    initializeData(root, bundle);
+    const profile = path.join(root, 'style/profile.md');
+    fs.writeFileSync(profile, previous);
+    const preserved = {
+      'style/settings.json': JSON.stringify({ urls: ['https://sample-blog.tistory.com'], sources: [] }),
+      'style/category-prompts.json': '{"personal-category":"keep"}',
+      'inbox/note.md': '사진과 메모를 보존합니다.',
+      'drafts/draft.json': '{"title":"보관한 초안"}'
+    };
+    for (const [relative, text] of Object.entries(preserved)) fs.writeFileSync(path.join(root, relative), text);
+    const config = fs.readFileSync(path.join(root, 'tistory.config.json'), 'utf8');
+    initializeData(root, bundle);
+    assert.equal(fs.readFileSync(profile, 'utf8'), expected);
+    const history = path.join(root, 'style/history');
+    const backups = fs.readdirSync(history);
+    assert.equal(backups.length, 1);
+    assert.equal(fs.readFileSync(path.join(history, backups[0]), 'utf8'), previous);
+    initializeData(root, bundle);
+    assert.deepEqual(fs.readdirSync(history), backups);
+    assert.equal(fs.readFileSync(path.join(root, 'tistory.config.json'), 'utf8'), config);
+    for (const [relative, text] of Object.entries(preserved)) assert.equal(fs.readFileSync(path.join(root, relative), 'utf8'), text);
+  }
+});
+
+test('기본 지침 갱신 시 사용자 수정본과 별도 프로필 경로를 보존한다', t => {
+  const bundle = path.resolve('.');
+  for (const name of ['style-0.7.4.md', 'style-initial-20260915.md']) {
+    const root = temp(t);
+    const oldTemplate = fs.readFileSync(path.join(bundle, 'test/fixtures', name), 'utf8');
+    initializeData(root, bundle);
+    const profile = path.join(root, 'style/profile.md');
+    const edited = oldTemplate + '\n내가 추가한 문체 규칙';
+    fs.writeFileSync(profile, edited);
+    initializeData(root, bundle);
+    assert.equal(fs.readFileSync(profile, 'utf8'), edited);
+    const configFile = path.join(root, 'tistory.config.json');
+    const config = JSON.parse(fs.readFileSync(configFile));
+    fs.writeFileSync(configFile, JSON.stringify({ ...config, styleProfile: 'custom-profile.md' }));
+    fs.writeFileSync(path.join(root, 'custom-profile.md'), oldTemplate);
+    fs.writeFileSync(profile, oldTemplate);
+    initializeData(root, bundle);
+    assert.equal(fs.readFileSync(path.join(root, 'custom-profile.md'), 'utf8'), oldTemplate);
+    assert.equal(fs.readFileSync(profile, 'utf8'), oldTemplate);
+    assert.equal(fs.existsSync(path.join(root, 'style/history')), false);
+  }
 });

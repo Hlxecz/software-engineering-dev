@@ -13,8 +13,6 @@ const reject = message => { throw Object.assign(new Error(message),{status:409})
 export const publicationBusy = phase => ['preparing','waiting_login','uploading','filling','submitting','verifying'].includes(phase);
 export const draftDigest = directory => hash(fs.readFileSync(path.join(directory,'draft.json')));
 
-// 로컬 초안 보관과 실제 티스토리 공개 발행은 별개다. 이 모듈은 발행 사본·진행 상태·결과를 관리한다.
-// 제출 후 결과가 불확실하면 자동 재발행하지 않아 같은 글이 중복 게시되는 것을 막는다.
 export function createPublications({ adapter, blogUrl, tocMode = 'article' }) {
   const running = new Set();
   function state(job) {
@@ -30,7 +28,7 @@ export function createPublications({ adapter, blogUrl, tocMode = 'article' }) {
     const previous = state(job);
     if (previous.phase === 'published' || running.has(job)) return previous;
     if (previous.phase === 'uncertain') reject('발행 결과가 불확실합니다. 중복 발행을 막기 위해 티스토리 글 관리에서 먼저 확인해 주세요.');
-    if (!adapter) reject('바로 발행은 최신 Windows EXE 앱에서 사용할 수 있습니다.');
+    if (!adapter) reject('바로 발행은 최신 데스크톱 앱에서 사용할 수 있습니다.');
     if (running.size) reject('다른 글을 발행하고 있습니다. 완료 후 시도해 주세요.');
     const bytes=fs.readFileSync(path.join(directory,'draft.json')), digest=hash(bytes);
     if (expectedDigest !== digest) reject('초안이 변경됐습니다. 다시 열어 내용을 확인한 뒤 발행해 주세요.');

@@ -4,17 +4,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID, randomBytes, createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { readyJob, prepareJob, renderDraft, buildPreview } from './blog.mjs';
+import { load } from 'cheerio';
+import { newJob, readyJob, prepareJob, renderDraft, buildPreview, listJobs } from './blog.mjs';
 import { generate } from './generate.mjs';
+import { refineWriting, refinementSelection, applyRefinement } from './refine.mjs';
 import { checkAI, providers } from './ai.mjs';
-import { createLibrary, blogAddress } from './tistory.mjs';
+import { createLibrary, blogAddress, readPublicArticle } from './tistory.mjs';
+import { normalizeImportedDraft, isAllowedRemoteImage, normalizePostUrl, mergeImportedDraft, stableRemoteUrl, remoteImageIdentity } from './existing-posts.mjs';
 import { createCategories } from './categories.mjs';
 import { createStyles } from './style.mjs';
 import { createWritingPrompts } from './writing-prompts.mjs';
 import { blogConfigured, requireBlog, saveBlogAddress } from './blog-settings.mjs';
 import { normalizeReferences, readReferences, collectReferences, referenceReview } from './references.mjs';
 import { createPublications, draftDigest } from './publication.mjs';
-import { deleteJobStorage } from './storage.mjs';
+import { createPostUpdates, updateBusy } from './post-update.mjs';
+import { jobStorage, deleteJobStorage } from './storage.mjs';
 import { manifestImage, normalizeCategory } from '../web/draft-model.js';
 import { articleCss, normalizeGitHubCard } from '../web/article-renderer.js';
 
@@ -24,11 +28,9 @@ const write = (file, value) => { const temp = `${file}.tmp`; fs.writeFileSync(te
 const exists = fs.existsSync;
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const fail = (condition, message, status = 400) => { if (!condition) throw Object.assign(new Error(message), { status }); };
-const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html' };
+const MIME = { '.woff2': 'font/woff2', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html' };
 
-// 화면의 /api/... 요청을 처리하는 Node HTTP 서버를 만든다. Electron과 웹 모드가 함께 사용한다.
-// AI·티스토리 연결은 여기서 조정하고, 로컬 자료 저장은 javaStore()에 맡긴다.
-export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), generator = generate, checkGenerator = checkAI, fetchPublic = fetch, publishAdapter = null, categoryReader = null, accountReader = null, styleAnalyzer, fetchStyle, fetchReference, notionReader } = {}) {
+export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), generator = generate, refiner = refineWriting, checkGenerator = checkAI, fetchPublic = fetch, publishAdapter = null, updateAdapter = null, categoryReader = null, accountReader = null, styleAnalyzer, fetchStyle, fetchReference, notionReader } = {}) {
   const java = javaStore(root, 'health');
   const c = json(path.join(root, 'tistory.config.json'));
   let library = createLibrary(root, c.blogUrl, fetchPublic);
@@ -36,13 +38,15 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
   const styles = createStyles({ root, profileFile: path.resolve(root, c.styleProfile), analyzer: styleAnalyzer, fetchPage: fetchStyle });
   let writingPrompts = createWritingPrompts({ root, blogUrl: c.blogUrl });
   let publications = createPublications({ adapter: publishAdapter, blogUrl: c.blogUrl, tocMode: c.tocMode });
-  let accountBlogs = null, connectingTistory = false;
+  let postUpdates = createPostUpdates({ root, adapter:updateAdapter, blogUrl:c.blogUrl, fetchPublic, tocMode:c.tocMode });
+  let accountBlogs = null, connectingTistory = false, importingPosts = false;
   const accountState = () => ({ canConnect: !!accountReader, busy: connectingTistory, blogs: accountBlogs });
   const listedBlogs = () => accountBlogs || library.list();
   const inbox = path.resolve(root, c.inbox), output = path.resolve(root, c.output);
   const token = randomBytes(32).toString('hex');
   const active = new Set();
   const generationStates = new Map();
+  const refinementStates = new Map();
   const referenceReadStates = new Map();
   const aiFile = path.join(root, 'ai.settings.json');
   let provider = exists(aiFile) ? json(aiFile).provider : 'codex';
@@ -71,11 +75,11 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
   const metaFor = dir => javaStore(root, 'job.meta', { id: path.basename(dir) });
   const imageNames = dir => javaStore(root, 'job.names', { id: path.basename(dir) });
   const savedDirectory = (id, meta) => javaStore(root, 'job.directory', { id, value: meta });
-  // Java가 읽은 저장 데이터에 사진 URL·진행 상태 등 화면에 필요한 정보를 덧붙인다.
   function readJob(id, stored = javaStore(root, 'job.read', { id })) {
     const dir = jobDir(id), meta = stored.meta, saved = stored.directory;
     const state = generationStates.get(id) || (meta.generating ? { phase: 'error', message: '앱이 재시작되어 글 작성이 중단됐습니다. 다시 시도해 주세요.' } : { phase: 'idle' });
     const draft = stored['draft.json'];
+    const undo = stored['refinement-undo.json'];
     const savedInput = stored['manifest.json'];
     const references = stored.references;
     const sameReferences = JSON.stringify(references) === JSON.stringify(savedInput?.references || []);
@@ -89,6 +93,11 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
       changed = names.join('\n') !== savedInput.images.map(i => i.name).join('\n') ||
         stored.notes !== stored['notes.md'] || !sameReferences;
     }
+    const existing=stored['existing-post.json'];
+    const draftRemoteKeys=new Set((draft?.blocks||[]).filter(block=>block.type==='rich').flatMap(block=>(block.images||[]).map(image=>image.sourceKey)));
+    const remoteImages=existing?[...new Map(Object.values(existing.source.templates||{}).flatMap(template=>template.images||[]).filter(image=>draftRemoteKeys.has(image.sourceKey)).map(image=>[image.sourceKey,image])).values()]:[];
+    const coverIdentity=existing&&existing.source.coverUrl?remoteImageIdentity(existing.source.coverUrl,existing.identity.blogUrl):null;
+    const remoteCover=remoteImages.find(image=>remoteImageIdentity(image.stableUrl,existing.identity.blogUrl)===coverIdentity)||remoteImages[0]||null;
     return { id, title: meta.title || '', notes: stored.notes, references, referenceReports, referenceRead:referenceReadStates.get(id) || {phase:'idle'},
       updatedAt: meta.updatedAt, images: stored.names.map(name => ({ name, label: meta.labels?.[name] || name, url: `/api/jobs/${id}/images/${encodeURIComponent(name)}` })),
       draft, draftImages: savedInput?.images.map(i => ({ name: i.name, url: `/api/jobs/${id}/draft-images/${encodeURIComponent(i.name)}` })) || [],
@@ -97,19 +106,27 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
       coverImages: [...new Set([...(meta.coverUploads || []), ...(savedInput?.coverImages || []).map(i => i.name)])].map(name => ({ name, label:meta.labels?.[name] || '표지 사진', url:`/api/jobs/${id}/${savedInput?.coverImages?.some(i=>i.name===name) ? 'draft-images' : 'images'}/${encodeURIComponent(name)}` })),
       review: stored['review.md'],
       analysis: stored['analysis.md'],
-      generation: state, changed, transfer: meta.transfer || null,
-      draftDigest: draft ? draftDigest(saved) : null, publication: publications.state(dir) };
+      generation: state, refinement: { ...(refinementStates.get(id) || (meta.refining ? { phase: 'error', message: '앱이 종료되어 글 다듬기가 중단됐습니다. 원문을 확인한 뒤 다시 시도해 주세요.' } : { phase: 'idle' })),
+        canUndo: !!(draft && undo && !undo.undone && undo.afterDigest === draftDigest(saved)) }, changed, transfer: meta.transfer || null,
+      draftDigest: draft ? draftDigest(saved) : null, publication: publications.state(dir), update:postUpdates.state(dir), existingPost:existing?{url:existing.identity.url,postId:existing.identity.postId,title:existing.source.title,publishedAt:existing.source.publishedAt,categoryPath:existing.source.categoryPath,coverUrl:existing.source.coverUrl,coverImageKey:remoteCover?.sourceKey||null,remoteImageCount:remoteImages.length,importedAt:existing.source.capturedAt,remoteDigest:existing.remoteDigest}:null };
   }
   const saveMeta = (dir, patch) => javaStore(root, 'job.meta.save', { id: path.basename(dir), value: patch });
-  function prepare(id) {
-    readyJob(root, id);
+  const importMap=()=>javaStore(root,'existing.index.read').mapping;
+  const importedJob=(key,url)=>{
+    const id=importMap()[key];if(!id)return null;
+    try {const job=readJob(id);fail(job.existingPost?.url===url,'기존 글 연결 정보가 올바르지 않습니다.',409);return job;}
+    catch(error){if(error.status===404)return null;throw error;}
+  };
+  function prepare(id, allowEmptyImages = false) {
+    readyJob(root, id, { allowEmptyImages });
     const prepared = prepareJob(root, id);
     saveMeta(jobDir(id), { directory: prepared.directory });
     return prepared.directory;
   }
-  // 학습 2: 수동 편집과 AI 생성 결과가 함께 사용하는 초안 저장 경로다.
-  // JS 본문 검증 → Java draft.save → JS 미리보기 생성 순서로 진행한다.
-  function persistDraft(id, directory, draft, review = '', analysis = '', referenceReports, writingContext) {
+  function persistDraft(id, directory, draft, review = '', analysis = '', referenceReports, writingContext, operation = 'draft.save', extra = {}) {
+    const existing=extra.existingTarget||javaStore(root,'existing.read',{id});
+    if(existing) draft=normalizeImportedDraft(draft,existing.source);
+    else fail(!draft?.blocks?.some(block=>block?.type==='rich'),'원문 형식 블록은 기존 글 가져오기에서만 사용할 수 있습니다.');
     if (draft?.category != null) {
       try { draft.category = normalizeCategory(draft.category, c.blogUrl); }
       catch (error) { fail(false, error.message); }
@@ -134,8 +151,7 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
       const source = coverSource && name === draft.cover ? coverSource : path.join(directory,'images',name);
       fail(sha(fs.readFileSync(source)) === manifestImage(manifest,name).sha256, '보관한 사진이 변경됐습니다. 다시 확인해 주세요.');
     }
-    javaStore(root, 'draft.save', { id, value: { directory, draft, manifest, usedImages, coverSource,
-      review, analysis, referenceReports, writingContext } });
+    javaStore(root, operation, {id,value:{directory,draft,manifest,usedImages,coverSource,review,analysis,referenceReports,writingContext,...extra}});
     renderDraft(directory);
   }
   async function readBody(req, max = 2 * 1024 * 1024) {
@@ -157,8 +173,6 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
     fs.createReadStream(file).pipe(res);
   };
 
-  // HTTP 메서드(GET/POST/PUT/DELETE)와 URL을 보고 처리할 기능을 고른다.
-  // X-App-Token은 이 로컬 앱의 변경 요청을 확인하는 값이며 티스토리 로그인 토큰이 아니다.
   const server = http.createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -170,8 +184,8 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
       if (req.headers.origin) fail(req.headers.origin === url.origin, '허용되지 않은 요청입니다.', 403);
       if (!['GET', 'HEAD'].includes(req.method)) fail(req.headers['x-app-token'] === token, '앱을 새로고침한 뒤 다시 시도해 주세요.', 403);
       const route = url.pathname;
-      if (route === '/api/java' && req.method === 'GET') return sendJson(res, { ...javaStore(root, 'health'), available: true });
       if (!['GET', 'HEAD'].includes(req.method)) fail(!connectingTistory, '티스토리 로그인 확인이 끝난 뒤 다시 시도해 주세요.', 409);
+      if(route==='/api/java'&&req.method==='GET')return sendJson(res,{...javaStore(root,'health'),available:true});
       if (route === '/api/tistory/connect' && req.method === 'POST') {
         fail(!!accountReader, '티스토리 계정 연결은 데스크톱 앱에서 사용할 수 있어요.', 409);
         fail(!server.hasActiveGeneration(), '진행 중인 작업이 끝난 뒤 로그인해 주세요.', 409);
@@ -189,7 +203,6 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
         finally { connectingTistory = false; }
         return sendJson(res, accountState());
       }
-      // 발행 주소를 바꾸면 분류·분류별 지침 어댑터도 새 블로그에 맞춘다. 기존 글의 분류는 덮어쓰지 않는다.
       if (route === '/api/blog-settings' && req.method === 'PUT') {
         const body = await bodyJson(req);
         fail(!server.hasActiveGeneration(), '진행 중인 작업이 끝난 뒤 블로그 주소를 변경해 주세요.', 409);
@@ -200,6 +213,7 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
         categories = createCategories({ root, blogUrl: c.blogUrl, reader: categoryReader });
         writingPrompts = createWritingPrompts({ root, blogUrl: c.blogUrl });
         publications = createPublications({ adapter: publishAdapter, blogUrl: c.blogUrl, tocMode: c.tocMode });
+        postUpdates = createPostUpdates({ root, adapter:updateAdapter, blogUrl:c.blogUrl, fetchPublic, tocMode:c.tocMode });
         return sendJson(res, { blogUrl: c.blogUrl, blogConfigured: true, categories: categories.state(), writingPrompts: writingPrompts.state() });
       }
       if (route === '/api/writing-prompts' && req.method === 'GET') return sendJson(res, writingPrompts.state());
@@ -243,30 +257,56 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
       if (remote && accountBlogs) fail(accountBlogs.some(blog => blog.id === remote[1]), '로그인한 계정의 블로그를 선택해 주세요.', 409);
       if (remote && req.method === 'GET' && !remote[2]) return sendJson(res, library.read(remote[1]));
       if (remote && req.method === 'POST' && remote[2] === 'sync') return sendJson(res, await library.sync(remote[1]));
+      const importing=route.match(/^\/api\/blogs\/([a-z0-9-]+)\/import$/);
+      if(importing&&req.method==='POST') {
+        const body=await bodyJson(req);fail(active.size===0&&!importingPosts,'진행 중인 작업이 끝난 뒤 기존 글을 가져와 주세요.',409);importingPosts=true;
+        try {
+          const importBlogUrl=requireBlog(c.blogUrl),selected=new URL(importBlogUrl).hostname.split('.')[0];
+          fail(importing[1]===selected,'현재 연결한 블로그의 글만 작업실로 가져올 수 있습니다.',409);
+          if(accountBlogs)fail(accountBlogs.some(blog=>blog.id===selected),'로그인한 계정의 블로그를 먼저 선택해 주세요.',409);
+          const requested=normalizePostUrl(body.url,importBlogUrl),key=`${new URL(importBlogUrl).origin}|${requested}`,known=importedJob(key,requested);
+          if(known)return sendJson(res,{...known,reused:true});
+          const article=await library.article(selected,requested);
+          const raced=importedJob(key,requested);if(raced)return sendJson(res,{...raced,reused:true});
+          let id=`edit-${selected}-${article.identity.postId||sha(article.identity.url).slice(0,12)}`.slice(0,80);
+          if(exists(path.join(inbox,id)))id=`edit-${selected}-${randomUUID().slice(0,12)}`;
+          javaStore(root,'job.create',{id,value:{title:'',notes:''}});const dir=jobDir(id);
+          const target={identity:article.identity,source:article.source,baseDraft:structuredClone(article.draft),remoteDigest:article.source.digest,importedAt:new Date().toISOString()};
+          javaStore(root,'existing.save',{id,value:target});
+          const matchedCategory=categories.state().items?.find(item=>item.blogUrl===article.identity.blogUrl&&JSON.stringify(item.path)===JSON.stringify(article.source.categoryPath));
+          if(matchedCategory)article.draft.category=matchedCategory;
+          const directory=prepare(id,true);persistDraft(id,directory,article.draft,'기존 공개 글에서 가져온 수정용 사본입니다. 원문 형식 블록은 문장만 편집하며 링크·강조·표 구조를 유지합니다.');
+          saveMeta(dir,{title:article.draft.title,directory,existingPost:true});
+          javaStore(root,'existing.index.save',{value:{...importMap(),[key]:id}});
+          return sendJson(res,{...readJob(id),reused:false},201);
+        } finally { importingPosts=false; }
+      }
       if (route === '/api/bootstrap' && req.method === 'GET') { await connectionCheck; return sendJson(res, {
-        token, storageBackend: java, blogUrl: c.blogUrl, blogConfigured: blogConfigured(c.blogUrl), tistory: accountState(), connected: ai.connected, ai, canPublish: !!publishAdapter, categories: categories.state(), writingPrompts: writingPrompts.state(),
+        token, storageBackend:{...java,available:true}, platform: process.platform, blogUrl: c.blogUrl, blogConfigured: blogConfigured(c.blogUrl), tistory: accountState(), connected: ai.connected, ai, canPublish: !!publishAdapter, canUpdate:!!updateAdapter, categories: categories.state(), writingPrompts: writingPrompts.state(),
         style: styles.state().profile
       }); }
       if (route === '/api/jobs' && req.method === 'GET') {
-        const jobs = javaStore(root, 'job.listData').map(j => { const p = readJob(j.id, j.data); return { id: p.id, title: p.draft?.title || p.title || '새로운 개발 기록', updatedAt: p.updatedAt, imageCount: p.images.length, hasDraft: !!p.draft, phase: p.generation.phase, busy: active.has(j.id), storageBytes: j.bytes }; });
+        const jobs = javaStore(root,'job.listData').map(j => { const p = readJob(j.id,j.data); return { id:p.id,title:p.draft?.title||p.title||'새로운 개발 기록',updatedAt:p.updatedAt,imageCount:p.images.length,hasDraft:!!p.draft,phase:p.generation.phase,busy:active.has(j.id),existingPost:p.existingPost||null,storageBytes:j.bytes }; });
         return sendJson(res, jobs.sort((a,b) => b.updatedAt.localeCompare(a.updatedAt)));
       }
       if (route === '/api/jobs' && req.method === 'POST') {
         const b = await bodyJson(req); const id = `${new Date().toISOString().slice(0,10)}-${randomUUID().slice(0,8)}`;
-        javaStore(root, 'job.create', { id, value: { title: typeof b.title === 'string' ? b.title.slice(0, 200) : '' } });
+        javaStore(root,'job.create',{id,value:{title:typeof b.title==='string'?b.title.slice(0,200):'',notes:''}});
         return sendJson(res, readJob(id), 201);
       }
       const match = route.match(/^\/api\/jobs\/([^/]+)(?:\/(.*))?$/);
       if (match) {
         const id = decodeURIComponent(match[1]), action = match[2] || '', dir = jobDir(id);
         if (!action && req.method === 'GET') return sendJson(res, readJob(id));
-        if (req.method !== 'GET' && action !== 'publish') mutableJob(id);
+        if (req.method !== 'GET' && !['publish','update'].includes(action)) mutableJob(id);
         if (!action && req.method === 'DELETE') {
           const deletedBytes = deleteJobStorage(root, [inbox, output], id);
+          // Java removes the import index only after local deletion succeeds.
           generationStates.delete(id);
           return sendJson(res, { id, deletedBytes });
         }
         if (action === 'publish' && req.method === 'POST') {
+          fail(!readJob(id).existingPost,'기존 글 수정 작업은 “기존 글에 수정 반영”을 사용해 주세요.',409);
           requireBlog(c.blogUrl);
           if (accountBlogs) fail(accountBlogs.some(blog => blog.url === c.blogUrl), '로그인한 계정의 블로그를 먼저 선택해 주세요.', 409);
           if (publications.isRunning(dir) || publications.state(dir).phase === 'published') return sendJson(res,readJob(id));
@@ -280,6 +320,34 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
           active.add(id);
           return sendJson(res,readJob(id),202);
         }
+        if(action==='update'&&req.method==='POST') {
+          requireBlog(c.blogUrl);
+          if(accountBlogs)fail(accountBlogs.some(blog=>blog.url===c.blogUrl),'로그인한 계정의 블로그를 먼저 선택해 주세요.',409);
+          if(postUpdates.isRunning(dir))return sendJson(res,readJob(id));
+          fail(active.size===0,'다른 글을 작성하거나 반영하고 있습니다. 완료 후 시도해 주세요.',409);
+          const b=await bodyJson(req);mutableJob(id);
+          const directory=savedDirectory(id,metaFor(dir));fail(directory&&exists(path.join(directory,'draft.json')),'먼저 수정한 글을 보관해 주세요.');
+          const previous=postUpdates.state(dir);if(previous.phase==='updated'&&previous.draftDigest===b.draftDigest)return sendJson(res,readJob(id));
+          postUpdates.start({job:dir,directory,expectedDigest:b.draftDigest,onFinish:()=>active.delete(id)});if(postUpdates.isRunning(dir))active.add(id);
+          return sendJson(res,readJob(id),202);
+        }
+        if(action==='reimport'&&req.method==='POST') {
+          fail(!active.size,'다른 작업이 끝난 뒤 원문을 다시 불러와 주세요.',409);mutableJob(id);
+          const target=javaStore(root,'existing.read',{id});fail(target,'기존 글 수정 작업이 아닙니다.',409);
+          fail(target.identity.blogUrl===new URL(c.blogUrl).origin,'현재 연결한 블로그의 원문만 다시 불러올 수 있습니다.',409);
+          active.add(id);
+          try{
+            const before=readJob(id),directory=savedDirectory(id,metaFor(dir));fail(before.draft&&directory,'보관한 수정본을 찾을 수 없습니다.',404);
+            const latest=await readPublicArticle(target.identity.url,target.identity.blogUrl,fetchPublic);
+            const backup=javaStore(root,'existing.backup',{id,value:{directory,draft:before.draft,target}}).path;
+            const base=target.baseDraft||before.draft, merged=mergeImportedDraft(base,before.draft,latest.draft);
+            const matched=categories.state().items?.find(item=>item.blogUrl===target.identity.blogUrl&&JSON.stringify(item.path)===JSON.stringify(latest.source.categoryPath));if(matched&&!merged.draft.category)merged.draft.category=matched;
+            const existingTarget={...target,source:latest.source,baseDraft:structuredClone(latest.draft),remoteDigest:latest.source.digest,reimportedAt:new Date().toISOString(),lastConflictBackup:backup};
+            const updateState={phase:'idle',message:merged.fullyMerged?'최신 원문과 로컬 수정본을 합쳤습니다. 내용을 확인한 뒤 다시 반영해 주세요.':'원문 구조가 달라 최신 원문을 불러왔습니다. 이전 로컬 수정본은 충돌 백업에 보관했습니다.',reimportedAt:new Date().toISOString(),conflicts:merged.conflicts,backup:path.basename(backup)};
+            persistDraft(id,directory,merged.draft,before.review+`\n\n원문 다시 불러오기: 로컬 수정본을 ${path.basename(backup)}에 보관했습니다.${merged.conflicts.length?` 양쪽에서 바뀐 항목은 로컬 수정을 유지했습니다: ${merged.conflicts.join(', ')}`:''}`,'',undefined,undefined,'existing.reimport',{expectedDigest:before.draftDigest,beforeTarget:target,existingTarget,updateState});
+            return sendJson(res,readJob(id));
+          } finally {active.delete(id);}
+        }
         if (!action && req.method === 'PUT') {
           const b = await bodyJson(req);
           mutableJob(id);
@@ -292,7 +360,7 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
             try { category = b.category === null ? null : normalizeCategory(b.category, c.blogUrl); }
             catch (error) { fail(false, error.message); }
           }
-          javaStore(root, 'job.save', { id, value: { title: b.title, notes: b.notes, order: b.order, references, ...(category !== undefined ? { category } : {}) } });
+          javaStore(root,'job.save',{id,value:{title:b.title,notes:b.notes,order:b.order,references,...(category!==undefined?{category}:{})}});
           return sendJson(res, readJob(id));
         }
         if (['images','covers'].includes(action) && req.method === 'POST') {
@@ -306,15 +374,33 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
           else if (bytes.toString('ascii',0,4) === 'RIFF' && bytes.toString('ascii',8,12) === 'WEBP') ext = '.webp';
           fail(ext, 'PNG, JPEG 또는 WebP 사진을 선택해 주세요.', 415);
           const name = `${randomUUID()}${ext}`;
-          javaStore(root, 'job.upload', { id, value: { name, bytes: bytes.toString('base64'), coverOnly, label: (url.searchParams.get('name') || name).slice(0, 200) } });
+          javaStore(root,'job.upload',{id,value:{name,bytes:bytes.toString('base64'),coverOnly,label:(url.searchParams.get('name')||name).slice(0,200)}});
           return sendJson(res, readJob(id), 201);
         }
         if ((action.startsWith('images/') || action.startsWith('draft-images/')) && req.method === 'GET') {
           const name = decodeURIComponent(action.slice(action.indexOf('/') + 1));
           fail(name === path.basename(name) && !/[\\/]/.test(name) && /\.(png|jpe?g|webp)$/i.test(name), '잘못된 사진 경로입니다.');
-          const image = javaStore(root, 'job.image', { id, value: { name, draft: action.startsWith('draft-images/') } });
-          res.writeHead(200, { 'Content-Type': MIME[path.extname(name).toLowerCase()] });
-          return res.end(Buffer.from(image.bytes, 'base64'));
+          const image=javaStore(root,'job.image',{id,value:{name,draft:action.startsWith('draft-images/')}});
+          const bytes=Buffer.from(image.bytes,'base64');
+          res.writeHead(200,{'Content-Type':MIME[path.extname(name).toLowerCase()],'Content-Length':bytes.length});
+          return res.end(bytes);
+        }
+        if(action.startsWith('remote-images/')&&req.method==='GET') {
+          const key=decodeURIComponent(action.slice('remote-images/'.length));fail(/^[a-f0-9]{24}$/.test(key),'잘못된 원문 사진 주소입니다.');
+          const target=javaStore(root,'existing.read',{id});fail(target,'기존 글 원문을 찾을 수 없습니다.',404);
+          const images=Object.values(target.source.templates||{}).flatMap(template=>template.images||[]), image=images.find(item=>item.sourceKey===key);
+          fail(image&&isAllowedRemoteImage(image.url,target.identity.blogUrl),'원문 사진을 찾을 수 없습니다.',404);
+          let imageUrl=image.url,response=await fetchPublic(imageUrl,{redirect:'manual',signal:AbortSignal.timeout(15000),headers:{Accept:'image/png,image/jpeg,image/webp'}});
+          if(!response.ok){const refreshed=await readPublicArticle(target.identity.url,target.identity.blogUrl,fetchPublic);const next=Object.values(refreshed.source.templates||{}).flatMap(template=>template.images||[]).find(item=>item.sourceKey===key);if(next){imageUrl=next.url;response=await fetchPublic(imageUrl,{redirect:'manual',signal:AbortSignal.timeout(15000),headers:{Accept:'image/png,image/jpeg,image/webp'}});}}
+          fail(response.ok&&!response.redirected,'원문 사진을 안전하게 가져오지 못했습니다.',502);const type=String(response.headers.get('content-type')||'').split(';')[0];
+          fail(['image/png','image/jpeg','image/webp','image/gif'].includes(type),'지원하지 않는 원문 사진 형식입니다.',415);
+          let size=0;const chunks=[];for await(const bytes of response.body){size+=bytes.length;fail(size<=12*1024*1024,'원문 사진이 너무 큽니다.',413);chunks.push(bytes);}
+          res.writeHead(200,{'Content-Type':type,'Content-Length':size,'Cache-Control':'private, max-age=300'});return res.end(Buffer.concat(chunks));
+        }
+        if(action==='conflict-backup'&&req.method==='GET') {
+          const status=postUpdates.state(dir),name=status.backup;fail(typeof name==='string'&&/^\d+-[a-f0-9]{8}\.json$/.test(name),'확인할 이전 수정본이 없습니다.',404);
+          const directory=savedDirectory(id,metaFor(dir));
+          const backup=javaStore(root,'existing.backup.read',{id,value:{directory,name}});return sendJson(res,{backedUpAt:backup.backedUpAt,draft:backup.draft});
         }
         if (action === 'references/read' && req.method === 'POST') {
           const references = readReferences(dir);
@@ -324,19 +410,17 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
           sendJson(res,readJob(id),202);
           collectReferences(references,fetchReference,message=>referenceReadStates.set(id,{phase:'reading',message}),notionReader)
             .then(reports=>{
-              javaStore(root, 'job.references.check', { id, value: { references, reports } });
+              javaStore(root,'job.references.check',{id,value:{references,reports}});
               referenceReadStates.set(id,{phase:'done'});
             }).catch(error=>referenceReadStates.set(id,{phase:'error',message:error.message}))
             .finally(()=>active.delete(id));
           return;
         }
-        // AI 작업은 먼저 진행 상태를 반환하고 비동기로 계속한다. 화면은 주기적으로 상태를 다시 조회한다.
-        // 시작할 때 선택한 지침을 고정하므로 도중에 지침을 수정해도 이번 결과의 기준은 바뀌지 않는다.
         if (action === 'generate' && req.method === 'POST') {
           fail(!checkingAI, 'AI 연결 확인이 끝난 뒤 다시 시도해 주세요.', 409);
           fail(active.size === 0, '다른 글을 작성 중입니다. 완료된 뒤 시도해 주세요.', 409);
           fail(imageNames(dir).length > 0, '먼저 개발 캡처를 올려 주세요.');
-          const meta = metaFor(dir), previousDirectory = savedDirectory(id, meta);
+          const meta = metaFor(dir), previousDirectory = meta.directory || null;
           const previousDraft = previousDirectory && exists(path.join(previousDirectory,'draft.json')) ? json(path.join(previousDirectory,'draft.json')) : null;
           const styleFile = path.resolve(root, c.styleProfile);
           fail(exists(styleFile), '말투 참고 자료가 없습니다. 설정에서 기존 글의 말투를 먼저 준비해 주세요.');
@@ -369,18 +453,56 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
               const labels = metaFor(dir).labels || {};
               const review = result.review + referenceReview(references) + (blocked.size ? '\n\n민감한 정보가 보일 수 있어 제외한 사진:\n' + [...blocked].map(name => labels[name] || name).join('\n') : '');
               persistDraft(id, directory, result.draft, review, result.analysis, references, writingContext);
-              javaStore(root, 'job.references.check', { id, value: { references: readReferences(directory), reports: references } });
+              javaStore(root,'job.references.check',{id,value:{references:readReferences(directory),reports:references}});
               generationStates.set(id, { phase: 'done', message: '초안을 만들었어요. 내용과 사진을 확인해 주세요.' });
             }).catch(e => { saveMeta(dir, { generating: false }); generationStates.set(id, { phase: 'error', message: e.message }); })
             .finally(() => active.delete(id));
           return;
         }
-        // 읽기 순서: web/app.js의 saveAll()이 보낸 초안 요청 → persistDraft() → javaStore("draft.save").
+        if (action === 'refine' && req.method === 'POST') {
+          const body = await bodyJson(req);
+          mutableJob(id);
+          fail(!checkingAI && active.size === 0, '다른 AI 작업이 끝난 뒤 다듬어 주세요.', 409);
+          const before = readJob(id), directory = savedDirectory(id, metaFor(dir));
+          fail(before.draft && directory, '먼저 글을 작성해 보관해 주세요.');
+          fail(body.draftDigest === before.draftDigest, '다른 창에서 글이 바뀌었습니다. 다시 열어 확인해 주세요.', 409);
+          const indices = refinementSelection(before.draft, body.indices);
+          const instruction = body.instruction ?? '';
+          fail(typeof instruction === 'string' && instruction.length <= 2000, '다듬기 요청은 2,000자 이하로 입력해 주세요.');
+          const context = { provider, style: styles.state().profile, writing: writingPrompts.resolve(before.draft.category), instruction, indices, selectedAt: new Date().toISOString() };
+          active.add(id); saveMeta(dir, { refining: true });
+          refinementStates.set(id, { phase: 'refining', message: `${indices.length}개 칸을 다듬을 준비를 하고 있어요.` });
+          sendJson(res, readJob(id), 202);
+          Promise.resolve().then(() => refiner({ ...context, draft: structuredClone(before.draft),
+            onProgress: message => refinementStates.set(id, { phase: 'refining', message }) }))
+            .then(result => {
+              const next = applyRefinement(before.draft, indices, result);
+              fail(draftDigest(directory) === before.draftDigest, '다듬는 동안 원문이 바뀌어 적용하지 않았습니다.', 409);
+              persistDraft(id,directory,next,before.review,'',undefined,undefined,'refinement.apply',{expectedDigest:before.draftDigest,beforeDraft:before.draft,beforeReview:before.review,context});
+              refinementStates.set(id, { phase: 'done', message: `${indices.length}개 칸을 다듬어 보관했어요. 결과를 확인해 주세요.` });
+            }).catch(error => refinementStates.set(id, { phase: 'error', message: error.message }))
+            .finally(() => {
+              try { saveMeta(dir,{refining:false}); }
+              catch(error) { refinementStates.set(id,{phase:'error',message:error.message}); }
+              finally { active.delete(id); }
+            });
+          return;
+        }
+        if (action === 'refine/undo' && req.method === 'POST') {
+          const body = await bodyJson(req);
+          mutableJob(id);
+          const before = readJob(id), directory = savedDirectory(id, metaFor(dir));
+          fail(before.refinement.canUndo && body.draftDigest === before.draftDigest, '다듬기 이후 글이 바뀌어 되돌릴 수 없습니다. 보관된 원문을 확인해 주세요.', 409);
+          const undo=javaStore(root,'refinement.read',{id,value:{directory}}).undo;
+          persistDraft(id,directory,undo.draft,before.review,'',undefined,undefined,'refinement.undo',{expectedDigest:before.draftDigest});
+          refinementStates.set(id, { phase: 'idle', message: '다듬기 전 글로 되돌렸어요.' });
+          return sendJson(res, readJob(id));
+        }
         if (action === 'draft' && req.method === 'PUT') {
           const b = await bodyJson(req);
           mutableJob(id);
           const meta = metaFor(dir);
-          const directory = savedDirectory(id, meta) || prepare(id);
+          const directory = savedDirectory(id, meta) || prepare(id, true);
           fail(typeof b.review === 'string', '검토 메모 형식을 확인해 주세요.');
           persistDraft(id, directory, b.draft, b.review);
           return sendJson(res, readJob(id));
@@ -397,7 +519,7 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
         fail(false, '요청한 기능을 찾을 수 없습니다.', 404);
       }
       if (req.method === 'GET' && route === '/article.css') { res.writeHead(200, { 'Content-Type':'text/css; charset=utf-8' }); return res.end(articleCss); }
-      const staticFiles = { '/': 'index.html', '/app.js': 'app.js', '/ai-help.js': 'ai-help.js', '/style-settings.js': 'style-settings.js', '/category-prompts.js': 'category-prompts.js', '/draft-model.js':'draft-model.js', '/article-renderer.js':'article-renderer.js', '/styles.css': 'styles.css', '/favicon.svg': 'favicon.svg', '/favicon.png': 'favicon.png', '/logo.png': 'logo.png' };
+      const staticFiles = { '/': 'index.html', '/app.js': 'app.js', '/theme.js': 'theme.js', '/fonts/PretendardVariable.woff2': 'fonts/PretendardVariable.woff2', '/ai-help.js': 'ai-help.js', '/style-settings.js': 'style-settings.js', '/category-prompts.js': 'category-prompts.js', '/draft-model.js':'draft-model.js', '/article-renderer.js':'article-renderer.js', '/styles.css': 'styles.css', '/favicon.svg': 'favicon.svg', '/favicon.png': 'favicon.png', '/logo.png': 'logo.png' };
       if (req.method === 'GET' && Object.hasOwn(staticFiles, route)) return sendFile(res, path.join(webRoot, staticFiles[route]));
       fail(false, '페이지를 찾을 수 없습니다.', 404);
     } catch (error) {
@@ -405,7 +527,7 @@ export function createApp({ root = ROOT, webRoot = path.join(ROOT, 'web'), gener
       else res.end();
     }
   });
-  server.hasActiveGeneration = () => active.size > 0 || styles.isRunning() || categories.isRunning() || connectingTistory || checkingAI;
+  server.hasActiveGeneration = () => active.size > 0 || styles.isRunning() || categories.isRunning() || connectingTistory || checkingAI || importingPosts;
   return server;
 }
 

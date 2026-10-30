@@ -1,5 +1,7 @@
 # 구현 전 설계: Java 함께 쓰는 H.Dev Studio
 
+> 이 문서는 v0.7.4 당시 설계 기록입니다. 현재 버전은 [v0.11.1 기능 반영표](windows-v0.11.1/FEATURES.md)와 [최신 구조](windows-v0.11.1/ARCHITECTURE.md)를 읽습니다. 아래 11개 클래스·사진 필수 조건은 과거 기준입니다.
+
 현재 기준: `Hlxecz/blog-automation`의 **v0.7.4**, 커밋 `2017f6a6763292a13cb5685928ca1523596ffde9`. 최초 v0.7.0 설계는 체크포인트 `fe59351`에 보존했습니다. 업그레이드 전 계획은 [v0.7.3](UPGRADE-v0.7.3.md)과 [v0.7.4](UPGRADE-v0.7.4.md)에 있습니다.
 이 문서는 구현을 시작하기 전에 README.md, docs/USAGE.md, 실제 API와 저장 코드를 대조해 작성했습니다.
 작업 위치는 별도 복제본 `blog-automation-java`이며 Git 원격 연결을 제거했습니다.

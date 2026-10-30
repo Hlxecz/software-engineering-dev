@@ -12,13 +12,19 @@ import static com.hdev.assignment.common.JsonFiles.*;
 /** 삭제 전에 inbox와 drafts 양쪽의 전체 트리를 검사한다. */
 public final class StorageService {
     private final Workspace workspace;
-    public StorageService(Workspace workspace) { this.workspace = workspace; }
+    private final ExistingPostService existing;
+    public StorageService(Workspace workspace) { this(workspace,new ExistingPostService(workspace,new com.hdev.assignment.common.FileJsonRecordStore(workspace))); }
+    public StorageService(Workspace workspace, ExistingPostService existing) { this.workspace = workspace; this.existing=existing; }
     // delete=false면 용량·대상 목록만 반환하고, true면 검사 후 실제 삭제한다.
     // bases는 Node가 전달하는 inbox와 drafts 경로다. 사용자 글 ID에 해당하는 하위 폴더만 다룬다.
     public JsonObject inspect(JsonArray bases, String id, boolean delete) throws IOException {
         Workspace.id(id); long bytes = 0; List<Path> targets = new ArrayList<>(); List<Path> files = new ArrayList<>();
+        require(bases!=null && bases.size()>0 && bases.size()<=2,"자료 폴더 목록을 확인해 주세요.");
+        Set<Path> seen=new HashSet<>();
+        if (delete) existing.index(); // Validate the lookup file before any deletion.
         for (JsonElement value : bases) {
             Path base = workspace.safe(Path.of(value.getAsString()));
+            require((base.equals(workspace.configured("inbox")) || base.equals(workspace.configured("output"))) && seen.add(base),"자료 폴더 경로가 올바르지 않습니다.",409);
             Path target = workspace.safe(base.resolve(id));
             if (!exists(target)) continue;
             require(Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS), "자료 폴더 경로를 확인할 수 없어 삭제하지 않았습니다.", 409);
@@ -38,6 +44,7 @@ public final class StorageService {
             Collections.reverse(files);
             try { for (Path file : files) Files.delete(workspace.safe(file)); }
             catch (IOException error) { throw new AppException("일부 자료를 삭제하지 못했습니다. 이 글의 파일을 사용하는 프로그램을 닫고 다시 삭제해 주세요.", 409); }
+            existing.removeFromIndex(id);
         }
         return obj("bytes", bytes, "targets", targets.stream().map(Path::toString).toList());
     }

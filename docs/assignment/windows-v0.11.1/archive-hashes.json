@@ -1,0 +1,901 @@
+{
+  "basisCommit": "65d866965b921eb981917623462fff6b668620c5",
+  "files": [
+    {
+      "path": "docs/assignment/diagrams/catalog.json",
+      "sha256": "5d70d1860a42876a990b654de377ff294d389e042b5854a564f8d4207ddfa627"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/activity-deletion.png",
+      "sha256": "340962dad283b50965206a42fcb29be93e3e977efa5f32545427813fd6bfd146"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/activity-deletion.svg",
+      "sha256": "dfdbe0f9e3fe35c4e28332970d1c0c87b9e4cc35c337331194a701a238e9d0a9"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/activity-generation.png",
+      "sha256": "d6f89381bdc9809488ead316ed6108dc222157390951deef4344a576336538cf"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/activity-generation.svg",
+      "sha256": "bf13bf6d7c2f8c8b6a0879c5552b85926f50d12afe04416632839a04fe1165aa"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/activity-publication.png",
+      "sha256": "820256a1ed5b3f7662613074a10519ad6aa4f42fdca8e02b3a810f3668e72f64"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/activity-publication.svg",
+      "sha256": "a4f4c346ce1c5aa51f22f7a6882417f82256c74e1d3465bb598e971b10bb9700"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-bridge.png",
+      "sha256": "9c0b8b2d640f241e7e34ccd637f2d6ac271b15bdadc38857aea09bc574cf60e9"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-bridge.svg",
+      "sha256": "5784023b6048a7f06a616413b4bfd70f143a5288920c1b26851e617d5ad61734"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-category.png",
+      "sha256": "d55e08e6c64573dabc148380bd23f88924c942a31fbd25de450fcd76f1148f39"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-category.svg",
+      "sha256": "69f867a056e8976fb1faee5f59431d2281d8aac5d456fd6e334ee7eba7dd25c0"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-common.png",
+      "sha256": "4507a4a43a00311791faf0e07dcf31490d89f5fae373c77c59d48eebe066703d"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-common.svg",
+      "sha256": "1c38b80349dd12adc98d3d4cdbe2f30838d18200cb7ec6e8eac1ab2a08a2f977"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-overview.png",
+      "sha256": "83cdef6ccfcdb8e9886217c32d12a476504b41c613afcf1ef9107987ac61e145"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-overview.svg",
+      "sha256": "bedefa4c9a91ed5f781e232e7e45606e1757a2898a87bc6d0eefbcd04026256b"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-post.png",
+      "sha256": "751383441373042c346b0b4bea9d68d65e105b6cd16fcc174676ad8942f0dbb2"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-post.svg",
+      "sha256": "53901bd656cc27f26dd34c228f88a6235435c17a946f263630342e0d3c0dadf9"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-prompt.png",
+      "sha256": "f46bbece0c2d52df370552fbbc9d8697075a7ce230fd527e6334cf7b271db29b"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-prompt.svg",
+      "sha256": "9f3b85296d39a0e9fcc8c2fff079f103061a6dd5ae9a930d42c7e51d655bc488"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-workspace.png",
+      "sha256": "b3a5861785a07e5f63a1f1c6d7246dea8db4f3d23e11195818f46aa779d55c18"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/classes-workspace.svg",
+      "sha256": "29cf4560465d3478b3ae82615d3bb4077af6fb7911ad1b34d0bbc91ab20943d4"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/components.png",
+      "sha256": "5de306b55733f005b899992f39c6fe45bf3d70b30a78ad77810e03f53cc5dd9a"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/components.svg",
+      "sha256": "fb9b2841cf025b2644a06b4e4caca42e09f0be91e4b3255e61aacfb8875d3287"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/dataflow.png",
+      "sha256": "742a4d2fd7c2af8a3371c11228522f89247477aa943d13336f4418d7801b9700"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/dataflow.svg",
+      "sha256": "2c496b43a7d6dafa8644ce486ef52ccc127986927a1a3247f348c7ba1722d943"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/deployment.png",
+      "sha256": "751aa4e8ba351a29606906edffd874b3232c7d5ef5856462514d9b44ce55268e"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/deployment.svg",
+      "sha256": "7b03eae613cde397d07566ee79d21360a6c73732c60444ac7016ad92c0df13bc"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/domain-files.png",
+      "sha256": "274af9b8030b58765b3cd90549d2116e03437bc9e61b303cc21fb88cd5c5fdae"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/domain-files.svg",
+      "sha256": "26622081cbdf1c9b62c101a14b349d472e661748ec7be5ff4d9fd94cb55cbc8b"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/packages.png",
+      "sha256": "6d9db124f1bd28776ea62fdf8221a09147789c1e47b0acbc0d8943fee5d77a36"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/packages.svg",
+      "sha256": "91e070466eb55b6da2f20ae12d219c774fe1df1d1befe24ee1a855e77318f0f5"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/patterns-current.png",
+      "sha256": "ecae3c59a825a4889f21d54e859f553c778312f82d88da89994e64b3fcc32903"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/patterns-current.svg",
+      "sha256": "73891fef3731475e3af4c1289596d12d90e448e82eb361c7cf8c64aedf2a5f56"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-01.png",
+      "sha256": "8b10a3525debe9bdec6e18c70c4631940f86718aaec186572490c5f568d8750a"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-01.svg",
+      "sha256": "40a2fb93ccad772944c2135efef26e566ac18947ccdf644b2197aa30da851659"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-02.png",
+      "sha256": "689517497e83964ffc5d7e11d4c58d4ff5d06ff135a312763d915211cc60f309"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-02.svg",
+      "sha256": "b1d7d262e91d1b9b29c26f573778470d0c0922954cdbe42802657db8461e331c"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-03.png",
+      "sha256": "3beb00c5857921619c10833901c58c5a3055523ca1e9257ee270f3a66418f3e4"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-03.svg",
+      "sha256": "f9faa957d500bb5c05287a8c52bb9dd07c7ba9f58516c0b7db4ab937977ada81"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-04.png",
+      "sha256": "dbe2b83608847c652cf50110546b494062fbb7c713eb94aa08b87a3128cefffe"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-04.svg",
+      "sha256": "47db6271ee1515efd321116defa048d089bf20042278912b74e6ce4d55165f47"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-05.png",
+      "sha256": "e5d502708cc4825e7644f3a3ff171d40a1a67d6afe641f9af66eb1e0866fe95f"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-05.svg",
+      "sha256": "4e4fdb9ff1832856be8b70f22fa3a3a0994d81c920516a3813c834cea8912c60"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-06.png",
+      "sha256": "2a7905fbfb189a1a4e3779fc4848c73b15c8f66d9115820a7108cafc23e9bbe7"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-06.svg",
+      "sha256": "7e02eca87ceda9c7b92504f9a47438551ca97533020e105321eb32f5e5d76f0a"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-07.png",
+      "sha256": "d4673bb47091a1cbecd2f90e23d2226877e33097b6729a4c47d982dcddc70577"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-07.svg",
+      "sha256": "be53c149287c5bb2c7c02a320e3174f0d2ea904f97bc161536de3e581ed61a80"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-08.png",
+      "sha256": "aa23a35434ef3c066e45fe29482a4127b87f81eb7a504fa29b5a83ffb598d38b"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-08.svg",
+      "sha256": "945829f424454bedddc3d519d1b6c74dfec7b62be811aec14831f42dfd99811d"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-09.png",
+      "sha256": "bafc90a06d69d205edb540d4f0d5e8aff546bb87fb414937d2bacee19ac71935"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-09.svg",
+      "sha256": "51334f2dcc293f3884fbff1e6a59203f8415835313493fe4c432e9075f3799dc"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-10.png",
+      "sha256": "4f292586fb910c9ffdb26e0d9ff47e6048b51c683ca46e55bb235cf5d9a97d6c"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-10.svg",
+      "sha256": "773f3feff057b6508a23ad15e499ce77ffc7d17da4385099824374245fd141d7"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-11.png",
+      "sha256": "2a5db05d625117fb14de589f8374807b3a35dcab3926627a9ba102b747974320"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-11.svg",
+      "sha256": "775d6eab4d1bdf39c5d9b3ba8ba471134a959f6cb46501bca3900fa7136bbc92"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-12.png",
+      "sha256": "63cb7585b16ebf57635f3e49aeec7dec0282a374c1b1308030ab35acf8b9826e"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-12.svg",
+      "sha256": "75e0dfbc574c016fadbdde0d9a74acd1fb80c0953af20e6565d0a3953edb983e"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-13.png",
+      "sha256": "61b1da6e6d6c1e95d8f9373e6bf8c940093f33748724da6545e789c7dda8ddee"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-13.svg",
+      "sha256": "55d7e331dca96fe68caeae150d05ad474fedab3afe572eee96eb45fc51551f8d"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-14.png",
+      "sha256": "673d636982dbbf204f49e268998687ea14099d47f503130f67e1f500f9c979e7"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-14.svg",
+      "sha256": "855ec98d48c7a97ac7f7158ae65a9fbecbeeceb54df7aa4203f4abf8398aebf4"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-15.png",
+      "sha256": "8fc9a90f1097d58d16d239f415bd30dc589f46b41034cc5ec1b67ee0deee4cd6"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-15.svg",
+      "sha256": "cf3ec9c16094fa1334be9cd478d0d0f04a7e79c91464c73bfedaf3a9d3cb6222"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-16.png",
+      "sha256": "f355a47e33ba00d604a8deb69b01831e1b84ecd8e1b26597f15700af989da9c1"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-16.svg",
+      "sha256": "a39a82ec1b0ee0c3f849635ddda3881237da408622b0cd66dd7c8b7b068973fd"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-17.png",
+      "sha256": "5d0a508ae4d8d5cbc94096279d55c3916301c369980c1faf3004843c7a9e3929"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-17.svg",
+      "sha256": "beed8f9057c4346ef11ccd1ee3f06f31208779cde748c82ddfece4a5b8c8ae81"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-18.png",
+      "sha256": "d8b360793a75abae2867a75fc5033b5e554362e5f5bf4260e990bd2c3d40fd78"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-18.svg",
+      "sha256": "b62bb579ea64f9339a580bcdf671b375eab4f573be09304484e3860dd600d321"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-19.png",
+      "sha256": "de123f22e8cb82fc3da81c3ae38e64a91ed6970a16cc8d786c3be5f2aa3cdeda"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-19.svg",
+      "sha256": "ab8327e24ae5e574521bf3bc1ba5e57bd05503aceb31a67160b5e1f05bcc4d2a"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-20.png",
+      "sha256": "cf1e1a09e5aacd4f9a4035251269288a0a27ef90ee3e8c6a6c6afc804a078dff"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-20.svg",
+      "sha256": "d6aacf272a31d7e93ee983a514046a21d630eeb51b89be79cb1616e756c5888a"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-21.png",
+      "sha256": "917b18495336ca46a6b89ce437c372d7aecd0f3e8b7dc97cd5dd48a2dad3d756"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/seq-21.svg",
+      "sha256": "78293f20175b65ca8a3c218595416501d8d9c1bde082740a84afdb9295b99b5f"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/solid-proposal.png",
+      "sha256": "67264ad5ae5c0baa9bf178acf0ae8bbda6f1ab68aeb4ec361f2403f34009cdf7"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/solid-proposal.svg",
+      "sha256": "20ee1321073612ade22cac192415468f6f07a77d8b83d1c08a52f9370b937e28"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-client.png",
+      "sha256": "bd2f3a0c239d16e05c2111bd730a26744dd3a101ee039d566b17ae6223cd0fa2"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-client.svg",
+      "sha256": "201f4798f6376ac9a9ad9841f764d27fb02587c5453ab636175ca4d8cdcdf58c"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-generation.png",
+      "sha256": "c19aa751587f5fa29e80e1f7b3206e9ba7d2e1ea89f6d4c8f0575e64521635a8"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-generation.svg",
+      "sha256": "10e7200d5033552d10b9e9ed031fddec45e06c02ef535208292b5c3f2114ca27"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-input.png",
+      "sha256": "1a45ace97b0c2045ca84fdb117eb5cdf133471beb45a8bb1eef1ff917bc883bf"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-input.svg",
+      "sha256": "e3d55ecb337db12d66acf61b825829b10a58a6e9198bb98dfc7b61c31f7ae8ef"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-publication.png",
+      "sha256": "d7502d15ce47225e591f1fdf0b1241684f5d1a4e10dbd5cc4afb1b57036e7f6a"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-publication.svg",
+      "sha256": "9f4c1aa8cc2aa6c5b01405ee1376e928fbe490c32e10123a8c6c8e09ce5ad7ec"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-request.png",
+      "sha256": "b4cfcb8ffa026f1edb4a21beb006f1544d3686a0008051465d2b78a6b4eb51f5"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-request.svg",
+      "sha256": "c22f28f25d263eb88613b2e871aa22395475430027159ccc1f241f352e0d1fac"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-style.png",
+      "sha256": "cfb535682b3ba07e55def27553d0fb5cbac64903bc356f6086c2e75eed807ada"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/state-style.svg",
+      "sha256": "e682ffb5004527e9b0557a2dc827e3d00fc9a746bc8aa825c30a8bf8c6c6a42a"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/system-context.png",
+      "sha256": "ee405d227c475a5282c4cff7802b10795b3954c646b447e9f7169ce71a3ea4d2"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/system-context.svg",
+      "sha256": "3e55b7aaad30024adf7da331e809b253ca5154f29e1e377ebe5338b3ce3466cc"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/uc-connections.png",
+      "sha256": "1533731b305f549e8eb7c939c4003f81a8b049f6489ceb937d7611b6cdaa708b"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/uc-connections.svg",
+      "sha256": "b1ff098a4c5fc29dc35fc7c54a81e6c54c1a21d2d521cbaa952de4294f0678a5"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/uc-prompts.png",
+      "sha256": "0261a63fd6235d94dece6e2c89771cdef14c9381053f9cfe79b8a7c0d8c3a07b"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/uc-prompts.svg",
+      "sha256": "fe5c8642fa1e0239f47c0ada2a1b1a48a02558328dff6e01c12e7a7334e2d11d"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/uc-writing.png",
+      "sha256": "548a7d49c1de3b6405f92c50d16e72c484ba5453c90c5ea8ea46a2b65ba7e35e"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/uc-writing.svg",
+      "sha256": "7c3830909bcf0786204df773ded4a0c496d54b44beea98c65a93bbdc54756f9e"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/ui-navigation.png",
+      "sha256": "07162cb8b835a6d6f9cb2e345c06fb06fa9bc68ead3db8f88fb52863ed2e8646"
+    },
+    {
+      "path": "docs/assignment/diagrams/images/ui-navigation.svg",
+      "sha256": "7b8ea14366900a72cb03000d151064b5e817199eecff199f9e259ab562903239"
+    },
+    {
+      "path": "docs/assignment/diagrams/index.html",
+      "sha256": "b4ba75c87f70210a9cbeed7afc5f4bf74a18f94b373ed51b94bbde92d1b186e9"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/activity-deletion.mmd",
+      "sha256": "66e9981941708447601441206adfa381d3abd7d885bdfd5c98c74f1b182bf3bc"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/activity-generation.mmd",
+      "sha256": "2326e6332418e25b524601e4eaf3aebaa3341f80c86bcffddc92aa5640e5cedb"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/activity-publication.mmd",
+      "sha256": "0ea953cae95a25e60ab6912339123f2beea95997f51e4d599eaa8851495137c7"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/classes-bridge.mmd",
+      "sha256": "a01d064ba57a4fcb686b99840e8022cb2d76656b250d79d97924d1ae2a807e4b"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/classes-category.mmd",
+      "sha256": "cdd6cdfe4d52a2d561d4fb55c5dda22994e3da54f9c46c47fedfa843586c181b"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/classes-common.mmd",
+      "sha256": "16c264e63bcce46dc2bc603dabed7fad3d78b5a769b8937028e38b81757a3ff9"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/classes-overview.mmd",
+      "sha256": "ad84e0115addf3ccd0c99cd33e635fe74e0733f0f2933ea81589a6be786cdab4"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/classes-post.mmd",
+      "sha256": "3145d413e765e59695a15014b7ca715ac39c4a5737a340606ae973a3c3cdd43d"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/classes-prompt.mmd",
+      "sha256": "5e29feba7bbc1d551fb83fc64669afc21ebe2577b86680ce16e8768a28abc9e7"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/classes-workspace.mmd",
+      "sha256": "5e42ded59711f4118bf590ea5e3255a1d3cdf3e4d3fdc4ecfe33ff66debcf370"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/components.mmd",
+      "sha256": "c3811b4a1e5e1c47c5c9858b7e039f52802f548b28a0cfb060defd66601447a4"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/dataflow.mmd",
+      "sha256": "85f57977be9a8edcd4b528ebd0d7befe15af78e175b482bdd92638a9b2f6f38d"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/deployment.mmd",
+      "sha256": "944f4f863a2c1e0f0ce5d03cce040ac9c0c22005ccc3f9005e938d71a63da30f"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/domain-files.mmd",
+      "sha256": "8e1f55bfcdd9566f4f5f2a75a2bd7bd42051fb259241cd3495409b151f90f4da"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/packages.mmd",
+      "sha256": "3672d43f2b2aae20338907c9d990dace3fecba1d1cf6060ae5a20434effcfd03"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/patterns-current.mmd",
+      "sha256": "bd07e2832f47df46f8bce6b33df1ed518bbdfc69dc18d9743ac7da13bae46801"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-01.mmd",
+      "sha256": "2687840fe78538ae81eb551d2d66d120a3adcbe328a1f66e752013dd89b00c6c"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-02.mmd",
+      "sha256": "4ff528a779e3aa5644ae24387c595bba9568134d47cfe67fe34996bf1ce9175a"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-03.mmd",
+      "sha256": "0f618c33014994408fa525f74f2a2474a711b2b86040bf0482f38c63669707e2"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-04.mmd",
+      "sha256": "de079e831ecc6820641427e51b63db781c03a56babd2ccc308ea534dc923f831"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-05.mmd",
+      "sha256": "1a4cd569cf3a8cc1eba5df069e917afe33874e1235dd97cd67647049ba3b32b6"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-06.mmd",
+      "sha256": "1a17df4f7f0367d212c52c575bbf58122b6684cba1b4c0930df542c8d94149ae"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-07.mmd",
+      "sha256": "b9073b509f7e4081f01411b879df35cad35935c5362420d5679079b45bc877fa"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-08.mmd",
+      "sha256": "321edd7d27512df26ff57f36ad2698a5a62e9dce48e37831d6dcb67bcd4eff31"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-09.mmd",
+      "sha256": "d06eaaea2013338b1609fa8953c5c6ea67932fed02e222ca7a126713882122f3"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-10.mmd",
+      "sha256": "c84ec17025844ae3476201d8cd3ff2a54c1c9cb03464883c69e801a3019496d3"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-11.mmd",
+      "sha256": "3764fec24b744cb422e52c9b1f66e6fd270e2df7a520d2a5d767578837cba0b7"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-12.mmd",
+      "sha256": "db064ea0e07e05b1dc95ebed68897dba8d25d8a1f6d69c06949ff95e16551f98"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-13.mmd",
+      "sha256": "e65a6024df51f967e4a0494bbb6a5b08afaed142c6b07ee9740ee0a542c06439"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-14.mmd",
+      "sha256": "b5fc72a4817bac44418c90f928bc3d584b856782854052aafd68641a4b86553f"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-15.mmd",
+      "sha256": "5aad52a5cc723ca350f74d25aabf89e1438c7ebe2a25465f8af14785141e81ac"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-16.mmd",
+      "sha256": "ef5cca8aa30af6ed2f2e4be0084b1fc83395e9540c15d7ed2c0d610c7578321b"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-17.mmd",
+      "sha256": "9243f9e6418a7de9421eb89ae406190abf570939810bf1475fac2d500242fbf6"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-18.mmd",
+      "sha256": "7ac803ad90c67747172306dcb8a1ef1b02b9813a369bc8914985273256e91733"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-19.mmd",
+      "sha256": "1e0c09fee8371083cdf8756d5f417e02d5afc03aaed7ebaa35c60a2ba9fc3b08"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-20.mmd",
+      "sha256": "8fcf5bb72942e9225ea695bf15d6e640a13a5ab3aec5fe73f98f8442683b8cf7"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/seq-21.mmd",
+      "sha256": "1bc440bbb5b2d0eef248c4b39a0202b3470744bd6651581f2f2a0085637387a8"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/solid-proposal.mmd",
+      "sha256": "6f27acc794ff381b85a6f0a98d0b9ecbf3707f92cbeda3e5f73e5ba28bc1fa71"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/state-client.mmd",
+      "sha256": "5a751b9a2f74521ba6f4a82f79b98ffd3e1b111c807215fcff7d1c8cf9783973"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/state-generation.mmd",
+      "sha256": "7c6d38198d8b23fa0d6949fe4c62f1575f2f812c0f664fd5e4fa5f108accc323"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/state-input.mmd",
+      "sha256": "7e8695f46a3fbc1f8426d6170f1a19d8a3c162e14b268566b1dcfa84f436584f"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/state-publication.mmd",
+      "sha256": "59d9713e25e8c23568de710e0915acf98e150a6b9ffe5f295670eea51646bdc0"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/state-request.mmd",
+      "sha256": "50fd6a5279f86670b8ee9e65c47971635eddd76774e3ea79c2b74cf9df814fa8"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/state-style.mmd",
+      "sha256": "cb718140bb2fbb0f7006075598cc0a3843eeb01dc84f3ca738f352dda2739d31"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/system-context.mmd",
+      "sha256": "d5a7e9ce4aeceb76e58ecb0051ad178a844afc8036f8533e9c9e246cab82dde7"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/uc-connections.mmd",
+      "sha256": "00b8225f4594094d14e73e8fdf62ca4ca751d57ec1ddf3bbdcb3a75055d07706"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/uc-prompts.mmd",
+      "sha256": "ea995404089ad0b3f06a00a7c3ef51f55a090c62d388418c162727381483f0cd"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/uc-writing.mmd",
+      "sha256": "15ae166a3137b106b5a713bebfdb238c5a7738977c62cc4f0ed1721a984515df"
+    },
+    {
+      "path": "docs/assignment/diagrams/sources/ui-navigation.mmd",
+      "sha256": "471a1e522abd6aca5af658c46db7f33eb1b5bdc2dd4f000ff78c01f44cbaf30b"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/00-목차.md",
+      "sha256": "b1125f2d1fd7cbaf291113dd15a970400fe4a22b288ce021eceb8330fde7afab"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/01-대상제어기.md",
+      "sha256": "ae79c20160773d52ed9fc9ca7524f710c5bdcee9ba3f139bf93d1e89890b253a"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/02-목표와범위.md",
+      "sha256": "c9c50d0b4ffd581f7844645c0f83046616e51d22c8f97b08618c0c7962731dc6"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/03-시스템관계와이해관계자.md",
+      "sha256": "66b4394df77cfcb72b8b6f567e454f2e306f64996def2d55ebc3af0c733adba2"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/04-제약과위험.md",
+      "sha256": "e409209c6ca8f0032caad68c7fe7cb190525661fae3ec17ae06f4c23bde103e2"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/05-규모와시간산정.md",
+      "sha256": "02577fd7d1c7c8bcc003c10e1b9040aa76750a15487090318c1c09aefe6cd0f4"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/06-업무분해와일정.md",
+      "sha256": "a6f23b87de03b44a42ab248b29cd823054d66685e6ccd957645cc31ce8962673"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/검토기록.md",
+      "sha256": "c3f9158bced058a98b5078cda269bab7a5ffd746b5f9a1151e0d3f059a7c534f"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/그림해시.json",
+      "sha256": "9dc82b3c2bfa21f2cd2d52e359ff7ea9a28967c133839b3fd9f46362cbf9fbb3"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/문서해시.json",
+      "sha256": "88344639ee060fb1eacd5232782226c57b171a524d11aa443b472de5b97ef279"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/설명분량비교.json",
+      "sha256": "60d5bb1ae5d50b48addb5e010c609d5c61762b9a3830f149eeaac4765130211a"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/인쇄검사.json",
+      "sha256": "b3c00a2cbf36e517f7ba80e639a8d27eff0c0fed90afebc99e5c3318dcb80ac2"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/정합성검사.json",
+      "sha256": "38263cee9f70100c6673541d53f0c83d70eb1e5180c5d2cdcefef5c3210179d6"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-02-내부책임그림.png",
+      "sha256": "32bc1d6ff945ebf3289c80c5aee473501edd1db6f9e68dbe0b4a5c25f7fbffc3"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-02-범위와인수.png",
+      "sha256": "4587b2a6152e60c20e8ad8257e597b621abddde4a4d789b6782ede6dac79e827"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-06-업무분해.png",
+      "sha256": "e7202aed073adc9140f30b7ea9e924b8309175193d20806b2bc9b6832c148be5"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-PC-1280.png",
+      "sha256": "384c28997b274f3dc1489631e2bbe88e35e72fc602a055ca8f42db4916bc7df5"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-UML-activity-authoring.png",
+      "sha256": "2523313b7c430c01ed46d8842c856a5b2332dc9f93b9eaf0d95d3dcc496c93f3"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-UML-classes-java.png",
+      "sha256": "9b3703652617cbfac8546b5e2bdbdab40aec9b3a31387726909b784064186c51"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-UML-sequence-manual-save.png",
+      "sha256": "66eadbd4f60f1251eecad5e4548ac9c2b156d84790f3f24f080f699453261f76"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-UML-usecase-connections.png",
+      "sha256": "5202edd7f7e7f61a7cd46f48124514e4ff1dbb560aa472b2a4d7f51f15f98f66"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-UML-usecase-prompts.png",
+      "sha256": "ff8e9abd71ddf8eb6544b99d49741f54dad156ffb8da0ad4b4523d0ef9e856f2"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-UML-usecase-writing.png",
+      "sha256": "af9e944440f652d3fe87d83f0c8d7a5da9ba69ebfd70b99061a147b300ce1459"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-그림확대.png",
+      "sha256": "5e3ee7379f372c327ddc01a299d8e2cff274b867b97c271eac9704730c4ff46f"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면-모바일-375.png",
+      "sha256": "0c8bf41120afdc6567531bb82a230ac85d8c2819c063532db581b32480923ede"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/검증자료/화면검사.json",
+      "sha256": "8cfc9af286bc4d2c09a5474f240cbf77581395cc9b0696e537512c0ed144fad7"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/계획자료/보고서구성.json",
+      "sha256": "d4a4c6d94cbe12a4c81085282f0954fc2b1c2ec94933fc31c7b179276ae9ab02"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/계획자료/업무계획.json",
+      "sha256": "aac8055066960debd134f01279a4f28a02151616f2cc849958e0b4b7d34a1d97"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/01-1-작성발행-활동.png",
+      "sha256": "702774713feca22cba1d5c8b441cd372bf85a8aac12a3ee1053db82e480e35cb"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/01-1-작성발행-활동.svg",
+      "sha256": "6f5eddd8f1f06de1c3295d2393fd8d9702928d49ec1ea34767d1803eed0a8418"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/01-제어개념.png",
+      "sha256": "b5d18f4452fb967e9cb1047fc450284eda4151c03d055b7fc5398d508404ebc8"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/01-제어개념.svg",
+      "sha256": "577a705eadbe69428bac215cb1f9c22e82a190ed6784cf8b3bce1adff96e94b6"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/02-1-수동초안저장-시퀀스.png",
+      "sha256": "5156af3ab975b46377709245e07c27f25aaa70f1d6890d4458f535aefe105e06"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/02-1-수동초안저장-시퀀스.svg",
+      "sha256": "b1f47024107c43fa6b041bf2b90b96100e164e6adac764083c0e7c0cdbd0fb21"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/02-내부책임과통신.png",
+      "sha256": "44413ef728965030fd902df322f91e5228d8937c42fc8e69188dccd9404fc618"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/02-내부책임과통신.svg",
+      "sha256": "761c0d62280703b3382358045e5704cafbfca3fe09b5314823407686744a3a77"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-1-유스케이스-글작업.png",
+      "sha256": "face1474be2d5cae866c6d194d55d43aad5686c487d6975741becb49c3195933"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-1-유스케이스-글작업.svg",
+      "sha256": "e21d140b6f58dc68c15863db82458f5ea06f80d917c59fcb1715249db4635d0f"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-2-유스케이스-실행연결.png",
+      "sha256": "3219e411c7acc46b41fafba5fa1e8e72e4a809b22edfa83999d0f76f8916b645"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-2-유스케이스-실행연결.svg",
+      "sha256": "2d63d91db11d25b9d6a265645c575208a4507fba4e43e83e51a6710c0e52564f"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-3-유스케이스-AI지침.png",
+      "sha256": "37afa55bb83a3a98531d431408ca47459ce106f9a72311d0b1d25fb76b4093fb"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-3-유스케이스-AI지침.svg",
+      "sha256": "eed26dcc6c4cb59e689d8bd024e5a6861c001fad215ec0f3540a357e5c71ab96"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-시스템관계.png",
+      "sha256": "070636f5e3fa634a8731be550b50fc0cc362e19c3fd5952a2c00f3a382b9bea4"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/03-시스템관계.svg",
+      "sha256": "95ef178e9719d721fadd0b8f51cab1280e580aca84231030f2e959427911a044"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/05-1-Java클래스관계.png",
+      "sha256": "08521b99577b08f85fb4547de18bff826e97de8f7eac0bcba44810bdfbae4037"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/05-1-Java클래스관계.svg",
+      "sha256": "ee0e6b91a7ccb94ac9f2bbbd92e202e4d74a44f4fe429ababb2402574cc655fa"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/05-규모와시간산정.png",
+      "sha256": "24c343f860a146fb8a1d50791096a2f08c9bcc3f4864b51de9072a92a433959d"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/05-규모와시간산정.svg",
+      "sha256": "b0d93929b771e0c6cb46b0895215b80494182c5351ab522594d37bf60ca4e8a8"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-1-업무분해-분석기반저장.png",
+      "sha256": "a4e6308fcc2c29d1f670a16668d27a217b24cf9cbfa4dcbfb942de3aac35898d"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-1-업무분해-분석기반저장.svg",
+      "sha256": "c0795e3ef86b6d97030197f574cec24227dd5fded51336b778d718a37f20b87a"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-2-업무분해-지침연결보존.png",
+      "sha256": "af1d6a116fd37af9a81e5b9a4796d3235cf530ec7e9e93e90cd5e26cde6363dd"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-2-업무분해-지침연결보존.svg",
+      "sha256": "40de74cf52de1163f3f7780467c6e484907f3bf3892255835ae5f6d86fe6827b"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-3-업무분해-검증인계관리.png",
+      "sha256": "90a322a93c9a5c62cde239bcbaad5710a87232df3b8f800aee3b33490cb48f59"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-3-업무분해-검증인계관리.svg",
+      "sha256": "bf9e8c53da9b02a7b3cdb4a1025be4956ff9b9cafcafe5308af2c295d3f52a4e"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-4-업무선행관계.png",
+      "sha256": "d7c459ae718d908be32a4458a4530cee1477b69378b948b20e13c17f68c176dd"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-4-업무선행관계.svg",
+      "sha256": "b7f9f3ce76f1d822150ac200ce523fc686d37647c679d3452960bf5337260a00"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-5-시간비례일정.png",
+      "sha256": "bb5fb17a61cf18de4f698f320e50b959e9fa1b879bc9524bafffe955dd88bc44"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림/06-5-시간비례일정.svg",
+      "sha256": "bec024698e1efad757cde5ec8245295c2dca70ca77ab8ebee643f43ca3e54173"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/01-1-작성발행-활동.svg",
+      "sha256": "f2be97d853e55326051bd4633b9e7a2df618dad5d6865a097ff52456856b80d7"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/01-제어개념.mmd",
+      "sha256": "cee6ac0ff69427bb69cd6b0f0cabd795b8901f351e58381ef44d549eaf2abdd6"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/02-1-수동초안저장-시퀀스.svg",
+      "sha256": "a530bcc7d3f827eaa04774ee7b059e7e17eda0b20720500226bf4dd53c776656"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/02-내부책임과통신.mmd",
+      "sha256": "84cebaa5c682305c566e10d740321aa4a5bdfd9a047ede02f8c90676b617480f"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/03-1-유스케이스-글작업.svg",
+      "sha256": "ac0e8427c4da6a04246460bf9caacd015619b25023c94a2cf515cfbd9269378f"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/03-2-유스케이스-실행연결.svg",
+      "sha256": "1feb6e36dcfd804976d5a492bdd77b61a1ed9205568e81f0d16c4143d848a81e"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/03-3-유스케이스-AI지침.svg",
+      "sha256": "b6b7745368a33516a6363dcffae0866eb8574051dc60c1974a1551a0a1fbd019"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/03-시스템관계.mmd",
+      "sha256": "067daf1b64a5caa6da53b6dbadd7dc0e097085013b3b8d4738cd6366d98b87f9"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/05-1-Java클래스관계.svg",
+      "sha256": "2b9df99618459b935f1f439e75f6705cb125169372eb805199c66bef1141fd42"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/05-규모와시간산정.mmd",
+      "sha256": "71f9e9a41857a99a6151dd88668df43dd1f36f7f6e5523fdf1462ecf606975d6"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/06-1-업무분해-분석기반저장.mmd",
+      "sha256": "179859797de45d75d2ec0ea66c6e48f61e43c3cb125bd8ac2f440d23260935f5"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/06-2-업무분해-지침연결보존.mmd",
+      "sha256": "dc00b593bcb6cba8171c44141588d5b54c9bc6f4f11cadc1fa1e0440e8ccc971"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/06-3-업무분해-검증인계관리.mmd",
+      "sha256": "c92de315957776ff36d3edf823f13ed39718251beada7b31b73c329fbad83a73"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/06-4-업무선행관계.mmd",
+      "sha256": "8cf4c5cdb787ea540cf9c02a99490ef1a1c6fec5022489a0aae398108615ca29"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/그림원본/06-5-시간비례일정.svg",
+      "sha256": "0570fa29ffbefd7b971ac83894db408967ee7edc27ba260ca42008103d247216"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/통합보고서.html",
+      "sha256": "4d09e9bf18c361af75a0b936a5ba20de0d3421189f7fcf909fe962c035e44fdf"
+    },
+    {
+      "path": "docs/assignment/과제1-프로젝트관리/통합보고서.pdf",
+      "sha256": "a674c9449fc45748b9f124e937f44b925b8cc7d05c30573c5e10b62ab4705134"
+    }
+  ]
+}

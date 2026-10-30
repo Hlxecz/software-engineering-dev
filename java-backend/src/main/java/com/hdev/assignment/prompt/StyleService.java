@@ -4,6 +4,8 @@ import com.google.gson.*;
 import com.hdev.assignment.workspace.Workspace;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Set;
+import com.hdev.assignment.common.FileTransaction;
 import java.util.UUID;
 import static com.hdev.assignment.common.AppException.require;
 import static com.hdev.assignment.common.JsonFiles.*;
@@ -12,6 +14,22 @@ import static com.hdev.assignment.common.JsonFiles.*;
 public final class StyleService {
     private final Workspace workspace;
     public StyleService(Workspace workspace) { this.workspace = workspace; }
+    public JsonObject upgradeDefault(JsonObject value) throws IOException {
+        require(textValue(value.get("next")) && !str(value,"next").isBlank(),"새 기본 지침을 확인해 주세요.");
+        Path expected=workspace.root.resolve("style/profile.md").toAbsolutePath().normalize();
+        Path configured=workspace.root.resolve(str(workspace.config(),"styleProfile")).toAbsolutePath().normalize();
+        if (!configured.equals(expected)) return obj("updated",false);
+        Path profile=workspace.safe(expected);
+        if (!exists(profile)) return obj("updated",false);
+        String previous=text(workspace.regular(profile)), next=str(value,"next");
+        String hash=sha(previous.replace("\r\n","\n").trim());
+        if (!Set.of("090681ccde918ed42f81df37ab2630f00ca00dc16574017bae6b1783e301b4b6","6a4bd3a28a3e84ca4e471bf06f4bfd69676923050614431a6645d1f446a82e17").contains(hash) || previous.equals(next)) return obj("updated",false);
+        Path backup=workspace.file("style/history/"+System.currentTimeMillis()+"-"+UUID.randomUUID()+"-default.md");
+        try (var transaction=new FileTransaction(workspace,profile,backup)) {
+            writeText(backup,previous); writeText(profile,next); transaction.commit();
+        }
+        return obj("updated",true,"backup",backup.toString());
+    }
     public JsonObject analysis() throws IOException {
         Path file = workspace.file("style/analysis.json");
         return exists(file) ? object(file) : obj("phase", "idle");

@@ -1,4 +1,4 @@
-# Windows 실행 안내
+# Windows 실행 안내 · 0.11.1-java.1
 
 ## 준비
 
@@ -62,7 +62,7 @@ npm.cmd run desktop
 웹과 Electron은 기본 개발 자료를 공유하므로 같은 자료를 동시에 편집하지 말고 하나씩 실행하세요.
 웹 포트는 `HDEV_JAVA_PORT`로 바꿀 수 있습니다.
 
-## 기존 v0.7.0~v0.7.4 자료 가져오기
+## 기존 v0.7.0~v0.11.1 자료 가져오기
 
 1. 원본 앱과 과제 앱을 종료합니다.
 2. 원본의 `workspace` 전체를 **새 폴더에 복사**합니다. 원본은 이동하거나 삭제하지 않습니다.
@@ -87,11 +87,14 @@ npm.cmd run test:categories    # Electron 카테고리 UI
 npm.cmd run test:writing       # Electron 프롬프트 UI
 npm.cmd run test:setup         # 웹 첫 실행·주소 즉시 반영
 npm.cmd run test:account       # 모의 로그인·블로그 선택·취소·보존
+npm.cmd run test:refine        # 모의 AI 부분 다듬기·되돌리기
+npm.cmd run test:existing      # 모의 기존 글 수정·섹션 편집
+npm.cmd run test:lifecycle     # Windows 창·종료·테마·자료 격리
 npm.cmd run release:check
 npm.cmd run build:exe
 ```
 
-EXE 위치는 `dist/0.7.4-java.1/HDev-Studio-0.7.4-java.1-win-x64.exe`입니다. Java JAR와 Gson을 포함하지만 Java 런타임 자체는 포함하지 않으므로 실행 PC에도 **Java 17 이상**이 필요합니다. 개발/재빌드에는 JDK가 필요합니다. 같은 버전의 EXE는 덮어쓰지 않습니다.
+EXE 위치는 `dist/0.11.1-java.1/windows/HDev-Studio-0.11.1-java.1-win-x64.exe`입니다. Java JAR와 Gson을 포함하지만 Java 런타임 자체는 포함하지 않으므로 실행 PC에도 **Java 17 이상**이 필요합니다. 개발/재빌드에는 JDK가 필요합니다. 같은 버전의 EXE는 덮어쓰지 않습니다.
 
 ## 오류 해결
 
@@ -107,3 +110,9 @@ EXE 위치는 `dist/0.7.4-java.1/HDev-Studio-0.7.4-java.1-win-x64.exe`입니다.
 | 티스토리 UI 변경 | 기존 편집기 연결이 중단될 수 있음; 모의 검사는 실제 게시 성공과 별개 |
 
 검사 로그·화면은 `.runtime/`, 발표 문서는 `docs/assignment/`, Java 코드는 `java-backend/src/main/java/`에 있습니다.
+
+## 새 기능과 검사 세션
+
+사진 없는 수동 글은 입력 사본에 textOnly로 표시합니다. AI 생성에는 사진이 필요합니다. [AI 다듬기·원문 가져오기·기존 글 수정](windows-v0.11.1/FEATURES.md)은 최신 사용법에 있습니다.
+
+자료 폴더 재정의는 HDEV_JAVA_DATA_DIR 하나입니다. 별도 검증에서만 HDEV_JAVA_USER_DATA_DIR로 Electron의 쿠키·창 설정용 세션 경로를 격리할 수 있으며, 이 값은 글의 workspace 위치를 바꾸지 않습니다. 기본 영구 로그인 세션도 원본 앱과 분리합니다.

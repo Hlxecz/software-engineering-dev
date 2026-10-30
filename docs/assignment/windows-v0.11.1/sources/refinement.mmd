@@ -1,0 +1,29 @@
+sequenceDiagram
+autonumber
+actor U as 사용자
+participant N as Node API
+participant A as AI CLI
+participant J as Java 다듬기 저장
+participant F as 전용 자료 폴더
+U->>N: 선택한 칸 다듬기
+N->>N: 원문 digest·지침·선택 고정
+N->>A: 선택한 칸과 지침
+A-->>N: 다듬은 문장
+N->>N: 선택 외 내용·형식 보존 검사
+N->>J: refinement.apply / 기대 digest
+J->>F: 자료 잠금 안에서 현재 digest 확인
+alt 글이 바뀜
+J-->>N: 409 / 원문 유지
+else 일치
+J->>F: 초안·undo·적용 지침 보관
+Note over J,F: 요청 중 실패 시 지정 파일 복원
+J-->>N: 저장 결과
+N->>N: JS 미리보기·글 재조회
+N-->>U: 다듬기 완료
+end
+U->>N: 다듬기 되돌리기
+N->>J: refinement.undo / 현재 digest
+J->>F: undo와 현재 글 검사 후 복원
+Note over J,F: 현재 검토 메모 유지
+J-->>N: 복원 결과
+N-->>U: 복원한 글 표시

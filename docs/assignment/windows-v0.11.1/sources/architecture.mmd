@@ -1,0 +1,12 @@
+flowchart TB
+ U[사용자] --> UI["web · 기존 화면/새 테마/글 편집"]
+ UI --> API["Node HTTP API · 입력/본문 검사"]
+ API --> AI["Codex / Claude Code CLI"]
+ API --> T["Electron · 티스토리 로그인/발행/수정"]
+ API --> B["java-store · JSON 프로세스 호출"]
+ B --> M["Main · 입출력/자료 잠금"]
+ M --> D["RequestDispatcher · 작업 선택"]
+ D --> BASE["기존 글·사진·초안·분류·지침"]
+ D --> NEW["원문 연결·다듬기·수정 시도"]
+ BASE --> F["Java 전용 workspace · 기존 JSON/사진"]
+ NEW --> F
