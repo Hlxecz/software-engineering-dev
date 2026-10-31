@@ -1,0 +1,10 @@
+flowchart TB
+ U[사용자 필요·작업 목적] --> R[요구사항·수용 기준]
+ R --> P[설계·구현 산출물]
+ R --> V[Verification]
+ P --> V
+ U --> L[Validation]
+ P --> L
+ V --> O[명세 충족 결과]
+ L --> F[목적 달성·사용자 피드백]
+ F --> R

@@ -6,6 +6,19 @@
 
 기존 blog-automation의 작성 화면·AI·티스토리 연결을 활용하고, 글·사진·초안·지침·수정 이력의 관리 책임을 Java 클래스로 구성합니다.
 
+## 과제 2. 요구사항 작성
+
+| 항목 | 문서 |
+|---|---|
+| 1 | [요구사항이란?](docs/assignment/과제2-요구사항작성/01-요구사항이란.md) |
+| 2 | [요구사항 범위](docs/assignment/과제2-요구사항작성/02-요구사항범위.md) |
+| 3 | [요구사항 41개와 수용 기준](docs/assignment/과제2-요구사항작성/03-요구사항작성.md) |
+| 4 | [요구사항 검증 방법](docs/assignment/과제2-요구사항작성/04-요구사항검증방법.md) |
+| 5 | [Validation과 Verification의 차이](docs/assignment/과제2-요구사항작성/05-Validation과Verification.md) |
+| 6 | [레퍼런스](docs/assignment/과제2-요구사항작성/06-레퍼런스.md) |
+
+[전체 목차](docs/assignment/과제2-요구사항작성/00-목차.md) · [통합 보고서](docs/assignment/과제2-요구사항작성/통합보고서.md) · [다이어그램](docs/assignment/과제2-요구사항작성/다이어그램)
+
 ## 과제 1. 프로젝트 관리
 
 | 단계 | 문서 |
