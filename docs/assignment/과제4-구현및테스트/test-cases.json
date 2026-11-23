@@ -1,0 +1,478 @@
+[
+  {
+    "id": "JOB-01",
+    "target": "JobRepository",
+    "method": "create/read",
+    "requirements": [
+      "글 작업 생성"
+    ],
+    "technique": "정상 동등 분할",
+    "input": "새 식별자 assignment4, 제목 새 글",
+    "steps": "작업 생성 → read",
+    "expected": "제목 새 글, 빈 메모, 새 작업 자료 조회",
+    "branch": "작업 없음 → 생성"
+  },
+  {
+    "id": "JOB-02",
+    "target": "JobRepository",
+    "method": "create",
+    "requirements": [
+      "글 작업 생성",
+      "저장 신뢰성"
+    ],
+    "technique": "비정상 동등 분할",
+    "input": "이미 생성한 assignment4에 제목 중복으로 재생성",
+    "steps": "원본 전체 파일 해시 기록 → 재생성 → 해시 비교",
+    "expected": "409 거부, 원본 전체 파일 유지",
+    "branch": "작업 존재 → 거부"
+  },
+  {
+    "id": "JOB-03",
+    "target": "JobRepository",
+    "method": "save/read",
+    "requirements": [
+      "작성 메모 보관",
+      "사진 등록",
+      "자료 호환성"
+    ],
+    "technique": "오류 추정·반복 0회",
+    "input": "제목 한글 💡, 메모 메모 📷와 줄바꿈, custom=42, 사진 1장, order=[]",
+    "steps": "사진 등록 → 추가 필드 저장 → 빈 순서 저장 → 재조회",
+    "expected": "한글·이모지·custom 유지, 순서 0개, 원본 사진 파일 존재",
+    "branch": "order 반복 0회, 순서 제외와 물리 삭제 구분"
+  },
+  {
+    "id": "JOB-04",
+    "target": "JobRepository",
+    "method": "save",
+    "requirements": [
+      "작성 메모 보관"
+    ],
+    "technique": "상한 경계값",
+    "input": "제목 가 200자, 메모 빈 문자열, order=[]",
+    "steps": "저장 → 제목 길이 조회",
+    "expected": "200자 저장 성공",
+    "branch": "제목 길이 ≤200 참"
+  },
+  {
+    "id": "JOB-05",
+    "target": "JobRepository",
+    "method": "save",
+    "requirements": [
+      "작성 메모 보관",
+      "저장 신뢰성"
+    ],
+    "technique": "상한 밖 경계값",
+    "input": "제목 가 201자, 메모 빈 문자열, order=[]",
+    "steps": "원본 해시 기록 → 저장 → 해시 비교",
+    "expected": "400 거부, 파일 미변경",
+    "branch": "제목 길이 ≤200 거짓"
+  },
+  {
+    "id": "JOB-06",
+    "target": "JobRepository",
+    "method": "save",
+    "requirements": [
+      "사진 등록",
+      "저장 신뢰성"
+    ],
+    "technique": "비정상 동등 분할·반복 2회",
+    "input": "실제 사진 a.png 1개, order=[a.png,a.png]",
+    "steps": "업로드 → 중복 순서 저장 → 원본 비교",
+    "expected": "400 거부, 원본 순서·사진·메타데이터 보존",
+    "branch": "seen.add 첫 회 참, 두 번째 거짓"
+  },
+  {
+    "id": "JOB-07",
+    "target": "JobRepository",
+    "method": "upload",
+    "requirements": [
+      "자료 경로 보호"
+    ],
+    "technique": "오류 추정",
+    "input": "사진 이름 ../outside.png, Base64=AQID",
+    "steps": "원본 해시 기록 → 업로드 → 파일 비교",
+    "expected": "400 거부, 상위 경로 파일 생성 없음",
+    "branch": "사진 이름 검증 실패"
+  },
+  {
+    "id": "DRAFT-01",
+    "target": "DraftRepository",
+    "method": "save",
+    "requirements": [
+      "초안 보관",
+      "블록 순서 변경",
+      "자료 호환성"
+    ],
+    "technique": "정상 동등 분할",
+    "input": "제목 새 제목, 본문 2개 역순, extension.keep=true",
+    "steps": "준비 초안 변경 → save → JobRepository.read",
+    "expected": "요청 초안 전체 일치, 블록 순서·확장 필드·초안 경로 유지",
+    "branch": "정상 저장·commit"
+  },
+  {
+    "id": "DRAFT-02",
+    "target": "DraftRepository",
+    "method": "save",
+    "requirements": [
+      "초안 보관",
+      "자료 경로 보호"
+    ],
+    "technique": "비정상 동등 분할",
+    "input": "요청 글 assignment4, manifest.id=other",
+    "steps": "원본 해시 기록 → 저장 → 전체 파일 비교",
+    "expected": "400 거부, 초안·메타데이터 미변경",
+    "branch": "manifest 글 ID 불일치"
+  },
+  {
+    "id": "DRAFT-03",
+    "target": "DraftRepository",
+    "method": "save",
+    "requirements": [
+      "초안 보관"
+    ],
+    "technique": "하한 밖 경계값",
+    "input": "제목 변경, tags=[], blocks=[]",
+    "steps": "원본 해시 기록 → 빈 본문 저장 → 비교",
+    "expected": "400 거부, 기존 초안 유지",
+    "branch": "본문 블록 0개 거부"
+  },
+  {
+    "id": "DRAFT-04",
+    "target": "DraftRepository",
+    "method": "save",
+    "requirements": [
+      "초안 보관",
+      "저장 신뢰성"
+    ],
+    "technique": "비정상 동등 분할·반복 1회",
+    "input": "사진 a.png 바이트 01, manifest.sha256=0 64개, usedImages=[a.png]",
+    "steps": "사진/입력 목록 준비 → 저장 → 전체 파일 비교",
+    "expected": "400 거부, 기존 자료 보존",
+    "branch": "사용 사진 지문 불일치"
+  },
+  {
+    "id": "DRAFT-05",
+    "target": "DraftRepository",
+    "method": "save",
+    "requirements": [
+      "초안 보관",
+      "저장 신뢰성"
+    ],
+    "technique": "분기 검사",
+    "input": "기존 초안 제목 이전 제목 → 새 제목",
+    "steps": "기존 초안 저장 → 다시 저장 → history 조회",
+    "expected": "새 초안 저장, 이전 초안 내용과 일치하는 이력 1개",
+    "branch": "기존 draft 존재 → 이력 생성"
+  },
+  {
+    "id": "DRAFT-06",
+    "target": "DraftRepository",
+    "method": "save",
+    "requirements": [
+      "저장 신뢰성"
+    ],
+    "technique": "화이트박스 실패 주입",
+    "input": "기존 review.md를 같은 이름의 디렉터리로 대체, 새 초안·writingContext 전달",
+    "steps": "원본 해시 기록 → 후반 review 쓰기 실패 → 전체 파일·history 비교",
+    "expected": "IOException 전달, 초안·연관 파일·메타데이터 복원, 이번 이력 제거",
+    "branch": "쓰기 후 예외 → close 복원, commit 미호출"
+  },
+  {
+    "id": "DRAFT-07",
+    "target": "DraftRepository",
+    "method": "save",
+    "requirements": [
+      "자료 경로 보호"
+    ],
+    "technique": "비정상 동등 분할",
+    "input": "글 assignment4 저장에 drafts/other/snapshot 경로 사용",
+    "steps": "다른 글 생성 → 잘못된 경로 저장 → 두 글 비교",
+    "expected": "400 거부, 두 작업 모두 미변경",
+    "branch": "글별 초안 경로 경계"
+  },
+  {
+    "id": "PROMPT-01",
+    "target": "PromptService",
+    "method": "save/resolve",
+    "requirements": [
+      "분류별 지침 적용"
+    ],
+    "technique": "정상 동등 분할",
+    "input": "example 블로그, 분류 11 개발/Java, 지침 앞뒤 공백",
+    "steps": "state revision 조회 → 저장 → resolve",
+    "expected": "공백을 정리한 Java 예제로 설명 반환",
+    "branch": "분류 일치 → 지침 반환"
+  },
+  {
+    "id": "PROMPT-02",
+    "target": "PromptService",
+    "method": "save/resolve",
+    "requirements": [
+      "분류별 지침 적용",
+      "대상 블로그 선택"
+    ],
+    "technique": "비정상 혼합 방지",
+    "input": "example과 second 블로그에 동일 분류 번호 11, 서로 다른 지침",
+    "steps": "첫 블로그 저장 → 두 번째 저장 → 각각 조회",
+    "expected": "두 지침 각각 유지, 다른 블로그 지침 혼입 없음",
+    "branch": "블로그별 목록 필터·기존 항목 유지"
+  },
+  {
+    "id": "PROMPT-03",
+    "target": "PromptService",
+    "method": "save/resolve",
+    "requirements": [
+      "분류별 지침 적용"
+    ],
+    "technique": "하한 경계값",
+    "input": "기존 분류 지침에 공백 3개 저장",
+    "steps": "정상 지침 생성 → 최신 revision으로 공백 저장 → resolve",
+    "expected": "profiles 0개, 빈 지침 반환",
+    "branch": "strip 후 빈 문자열 → 해당 지침 제거"
+  },
+  {
+    "id": "PROMPT-04",
+    "target": "PromptService",
+    "method": "save",
+    "requirements": [
+      "분류별 지침 적용",
+      "저장 신뢰성"
+    ],
+    "technique": "오류 추정·충돌 분기",
+    "input": "지침 저장 전의 오래된 revision 재사용",
+    "steps": "최초 revision 확보 → 새 지침 저장 → 오래된 변경 요청",
+    "expected": "409 거부, 최신 지침 전체 파일 보존",
+    "branch": "revision 불일치"
+  },
+  {
+    "id": "PROMPT-05",
+    "target": "PromptService",
+    "method": "save/resolve",
+    "requirements": [
+      "분류별 지침 적용"
+    ],
+    "technique": "상한 직전 경계값",
+    "input": "한글 가 9,999자",
+    "steps": "최신 revision으로 저장 → 반환 길이 확인",
+    "expected": "9,999자 저장·조회 일치",
+    "branch": "길이 10,000 이하 참"
+  },
+  {
+    "id": "PROMPT-06",
+    "target": "PromptService",
+    "method": "save/resolve",
+    "requirements": [
+      "분류별 지침 적용"
+    ],
+    "technique": "상한 경계값",
+    "input": "한글 가 10,000자",
+    "steps": "최신 revision으로 저장 → 반환 길이 확인",
+    "expected": "10,000자 저장·조회 일치",
+    "branch": "길이 10,000 이하 참"
+  },
+  {
+    "id": "PROMPT-07",
+    "target": "PromptService",
+    "method": "save",
+    "requirements": [
+      "분류별 지침 적용",
+      "저장 신뢰성"
+    ],
+    "technique": "상한 밖 경계값",
+    "input": "한글 가 10,001자",
+    "steps": "해시 기록 → 최신 revision으로 저장 → 파일 비교",
+    "expected": "400 거부, 지침 파일 미변경",
+    "branch": "길이 10,000 이하 거짓"
+  },
+  {
+    "id": "REFINE-01",
+    "target": "RefinementService",
+    "method": "apply/read",
+    "requirements": [
+      "선택 영역 다듬기",
+      "비선택 내용 보존"
+    ],
+    "technique": "정상 동등 분할",
+    "input": "첫 문단 변경 초안, 같은 두 번째 문단·확장 필드, 현재 원문·검토·SHA-256",
+    "steps": "변경 초안 전달 → apply → 초안·undo 조회",
+    "expected": "전달 초안 일치, 비선택 문단·확장 필드와 undo 기록 보존",
+    "branch": "검증 통과 → save와 기록 commit"
+  },
+  {
+    "id": "REFINE-02",
+    "target": "RefinementService",
+    "method": "apply",
+    "requirements": [
+      "다듬기 변경 충돌 처리"
+    ],
+    "technique": "비정상 동등 분할",
+    "input": "expectedDigest=0 64개, 실제 초안 지문과 다름",
+    "steps": "원본 해시 기록 → apply → 비교",
+    "expected": "409 거부, 최신 초안·검토·이력 미변경",
+    "branch": "초안 지문 불일치"
+  },
+  {
+    "id": "REFINE-03",
+    "target": "RefinementService",
+    "method": "apply",
+    "requirements": [
+      "다듬기 변경 충돌 처리"
+    ],
+    "technique": "조건별 분기 검사",
+    "input": "지문은 정상, beforeDraft 제목 틀린 원문",
+    "steps": "원본 해시 기록 → apply → 비교",
+    "expected": "409 거부, 현재 자료 미변경",
+    "branch": "지문 통과 → 원문 비교 실패"
+  },
+  {
+    "id": "REFINE-04",
+    "target": "RefinementService",
+    "method": "apply",
+    "requirements": [
+      "다듬기 변경 충돌 처리"
+    ],
+    "technique": "조건별 분기 검사",
+    "input": "정상 요청 작성 후 review.md를 사용자의 최신 검토로 변경",
+    "steps": "검토 변경 → 전체 해시 → apply → 비교",
+    "expected": "409 거부, 최신 검토·초안 미변경",
+    "branch": "지문/원문 통과 → 검토 비교 실패"
+  },
+  {
+    "id": "REFINE-05",
+    "target": "RefinementService",
+    "method": "undo",
+    "requirements": [
+      "다듬기 되돌리기"
+    ],
+    "technique": "정상 동등 분할",
+    "input": "다듬기 완료 후 현재 검토 메모 변경, 정확한 afterDigest와 원문",
+    "steps": "apply → 검토 수정 → undo → 재조회",
+    "expected": "이전 초안 완전 복원, 현재 검토 메모 유지",
+    "branch": "유효한 undo → 복원·undone 기록"
+  },
+  {
+    "id": "REFINE-06",
+    "target": "RefinementService",
+    "method": "undo",
+    "requirements": [
+      "다듬기 되돌리기",
+      "저장 신뢰성"
+    ],
+    "technique": "상태 전이·오류 추정",
+    "input": "한 번 되돌린 undo를 최신 지문으로 재요청",
+    "steps": "apply → undo → 다시 undo → 파일 비교",
+    "expected": "409 거부, 두 번째 요청으로 자료 변경 없음",
+    "branch": "undone=true → 재사용 거부"
+  },
+  {
+    "id": "REFINE-07",
+    "target": "RefinementService",
+    "method": "apply",
+    "requirements": [
+      "저장 신뢰성"
+    ],
+    "technique": "화이트박스 실패 주입",
+    "input": "refinement-context.json을 쓴 직후 IOException을 던지는 JsonRecordStore 대역",
+    "steps": "원본 해시 → 실제 DraftRepository로 apply → 후반 실패 → 비교",
+    "expected": "초안·undo·context·메타데이터 복원, 새 history 제거",
+    "branch": "기록 저장 후 실패 → 요청 전체 rollback"
+  },
+  {
+    "id": "UPDATE-01",
+    "target": "UpdateService",
+    "method": "state/save",
+    "requirements": [
+      "동일 글 수정 반영",
+      "불확실한 수정 재전송 방지"
+    ],
+    "technique": "정상 상태 동등 분할",
+    "input": "새 작업, 이후 phase=uncertain, attemptId=a1",
+    "steps": "기본 조회 → uncertain 저장 → 조회",
+    "expected": "초기 idle, 저장 후 uncertain과 시도 식별자 유지",
+    "branch": "기본값·유효 phase 저장"
+  },
+  {
+    "id": "UPDATE-02",
+    "target": "UpdateService",
+    "method": "save",
+    "requirements": [
+      "동일 글 수정 반영"
+    ],
+    "technique": "비정상 동등 분할",
+    "input": "기존 phase=idle, 요청 phase=unknown",
+    "steps": "원본 해시 → 저장 → 비교",
+    "expected": "400 거부, 기존 idle 파일 유지",
+    "branch": "허용 상태 집합 미포함"
+  },
+  {
+    "id": "UPDATE-03",
+    "target": "UpdateService",
+    "method": "snapshot",
+    "requirements": [
+      "동일 글 수정 반영",
+      "저장 신뢰성"
+    ],
+    "technique": "정상 동등 분할",
+    "input": "현재 초안 지문, 대상 example.tistory.com/17, attempt-1, 사용 사진 없음",
+    "steps": "snapshot → 사본 자료 비교 → 원래 초안 편집 → 사본 해시 비교",
+    "expected": "초안·manifest·대상 사본 생성, 원래 초안 수정 후 사본 불변",
+    "branch": "사본 신규 생성 → commit"
+  },
+  {
+    "id": "UPDATE-04",
+    "target": "UpdateService",
+    "method": "snapshot",
+    "requirements": [
+      "동일 글 수정 반영",
+      "저장 신뢰성"
+    ],
+    "technique": "비정상 동등 분할",
+    "input": "expectedDigest=0 64개",
+    "steps": "원본 해시 → snapshot → 전체 비교",
+    "expected": "409 거부, 사본 부분 생성 없음",
+    "branch": "현재 초안 지문 불일치"
+  },
+  {
+    "id": "UPDATE-05",
+    "target": "UpdateService",
+    "method": "snapshot",
+    "requirements": [
+      "동일 글 수정 반영",
+      "저장 신뢰성"
+    ],
+    "technique": "상태 전이·오류 추정",
+    "input": "이미 성공한 attempt-1로 다시 요청",
+    "steps": "snapshot 성공 → 전체 해시 → 같은 시도 다시 생성",
+    "expected": "409 거부, 기존 사본 덮어쓰기 없음",
+    "branch": "같은 attempt 디렉터리 존재"
+  },
+  {
+    "id": "UPDATE-06",
+    "target": "UpdateService",
+    "method": "snapshot",
+    "requirements": [
+      "동일 글 수정 반영",
+      "저장 신뢰성"
+    ],
+    "technique": "비정상 동등 분할·반복 1회",
+    "input": "실제 사진 01, manifest.sha256=0 64개, usedImages=[a.png]",
+    "steps": "사진과 입력 목록 준비 → snapshot → 전체 비교",
+    "expected": "409 거부, 부분 수정 사본 생성 없음",
+    "branch": "사진 해시 불일치"
+  },
+  {
+    "id": "UPDATE-07",
+    "target": "UpdateService",
+    "method": "receipt",
+    "requirements": [
+      "동일 글 수정 반영",
+      "저장 신뢰성"
+    ],
+    "technique": "정상/비정상 분기 검사",
+    "input": "정상 사본 지문의 record 저장 후 사본 draft.json을 tampered로 변경",
+    "steps": "정상 receipt 저장 확인 → 사본 변조 → 같은 receipt 재요청",
+    "expected": "정상 record 일치, 변조 후 409, 이전 receipt 보존",
+    "branch": "사본 지문 일치/불일치"
+  }
+]
