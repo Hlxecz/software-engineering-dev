@@ -41,7 +41,8 @@
     "test:lifecycle": "electron validation/electron-lifecycle.mjs",
     "pretest:refine": "npm run java:build",
     "pretest:existing": "npm run java:build",
-    "pretest:lifecycle": "npm run java:build"
+    "pretest:lifecycle": "npm run java:build",
+    "test:assignment4": "node tools/run-assignment4.mjs"
   },
   "devDependencies": {
     "electron": "44.3.0",

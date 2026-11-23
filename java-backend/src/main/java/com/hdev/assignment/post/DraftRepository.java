@@ -3,6 +3,7 @@ package com.hdev.assignment.post;
 import com.google.gson.*;
 import com.hdev.assignment.workspace.Workspace;
 import com.hdev.assignment.category.CategoryService;
+import com.hdev.assignment.common.FileTransaction;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -18,6 +19,26 @@ public final class DraftRepository implements DraftStore {
     // 본문 블록의 상세 규칙은 JS가 검사하고, Java는 저장 경로·글 ID·분류·사진 해시를 다시 확인한다.
     public JsonObject save(String id, JsonObject value) throws IOException {
         Path directory = workspace.draftDirectory(id, str(value, "directory"));
+        List<Path> protectedFiles = new ArrayList<>();
+        for (String name : List.of("draft.json", "manifest.json", "references-read.json", "writing-context.json", "review.md", "analysis.md")) {
+            protectedFiles.add(directory.resolve(name));
+        }
+        protectedFiles.add(workspace.existingJob(id).resolve("app.json"));
+        if (!str(value, "coverSource").isEmpty()) {
+            String cover = str(value.getAsJsonObject("draft"), "cover");
+            JobRepository.validImageName(cover);
+            protectedFiles.add(directory.resolve("images").resolve(cover));
+        }
+        // 과제 3의 요청 단위 보호: 일반 저장도 연관 파일과 새 이력을 함께 복원한다.
+        // 기존 history 내용은 읽지 않고 이번 요청이 만든 항목만 보호한다.
+        try (var transaction = new FileTransaction(workspace, protectedFiles.toArray(Path[]::new))
+                .protectCreatedFiles(directory.resolve("history"))) {
+            JsonObject result = saveContents(id, value, directory);
+            transaction.commit();
+            return result;
+        }
+    }
+    private JsonObject saveContents(String id, JsonObject value, Path directory) throws IOException {
         JsonObject draft = value.getAsJsonObject("draft"), manifest = value.getAsJsonObject("manifest");
         require(str(manifest, "id").equals(id), "초안 글 ID가 다릅니다.");
         require(!str(draft, "title").isBlank() && !array(draft, "blocks").isEmpty() && draft.has("tags") && draft.get("tags").isJsonArray(), "초안 형식을 확인해 주세요.");
